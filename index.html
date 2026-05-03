@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
+<title>AgriMateKE — Smart Farming Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g50:#f0faf0;--g100:#d4f0d4;--g200:#a8e0a8;--g300:#6dca6d;
+  --g400:#4caf50;--g500:#3d9142;--g600:#2e7d32;--g700:#1e5c22;--g800:#1b5e20;
+  --amber-100:#fff8e1;--amber-400:#ffca28;--amber-600:#f57f17;
+  --red-100:#ffebee;--red-400:#ef5350;--red-600:#c62828;
+  --sky-100:#e1f5fe;--sky-400:#29b6f6;--sky-600:#0277bd;
+  --purple-100:#f3e5f5;--purple-400:#ab47bc;--purple-600:#7b1fa2;
+  --gray-50:#fafafa;--gray-100:#f5f5f5;--gray-200:#eeeeee;
+  --gray-300:#e0e0e0;--gray-400:#bdbdbd;--gray-500:#9e9e9e;
+  --gray-600:#757575;--gray-700:#616161;--gray-800:#424242;--gray-900:#212121;
+  --white:#ffffff;
+  --font-head:'DM Serif Display',serif;
+  --font:'Outfit',sans-serif;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:24px;--r-full:999px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:0 4px 16px rgba(0,0,0,.10);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.14);
+}
+html,body,#root{height:100%;font-family:var(--font);background:var(--gray-50);color:var(--gray-900);-webkit-font-smoothing:antialiased}
+
+/* ══ LAYOUT ══════════════════════════════════════════ */
+.app-shell{display:flex;height:100vh;overflow:hidden}
+
+/* ── Sidebar ── */
+.sidebar{width:245px;background:linear-gradient(180deg,var(--g800) 0%,var(--g700) 100%);display:flex;flex-direction:column;flex-shrink:0;transition:transform .25s ease;z-index:50}
+.sidebar-logo{padding:22px 20px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-logo h1{font-family:var(--font-head);font-size:22px;color:var(--white);letter-spacing:.3px}
+.sidebar-logo p{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px}
+.sidebar-logo .farm-badge{display:inline-flex;align-items:center;gap:4px;margin-top:8px;background:rgba(255,255,255,.1);border-radius:var(--r-full);padding:3px 10px;font-size:11px;color:rgba(255,255,255,.75)}
+.sidebar-nav{flex:1;padding:10px 8px;overflow-y:auto}
+.sidebar-nav::-webkit-scrollbar{display:none}
+.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);padding:12px 12px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-sm);cursor:pointer;transition:background .15s;color:rgba(255,255,255,.65);font-size:14px;font-weight:400;border:none;background:none;width:100%;text-align:left;position:relative}
+.nav-item:hover{background:rgba(255,255,255,.08);color:var(--white)}
+.nav-item.active{background:rgba(255,255,255,.15);color:var(--white);font-weight:600}
+.nav-item svg{width:17px;height:17px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red-400);color:var(--white);font-size:10px;font-weight:700;padding:1px 6px;border-radius:var(--r-full)}
+.sidebar-footer{padding:12px 8px;border-top:1px solid rgba(255,255,255,.1)}
+.sidebar-user{display:flex;align-items:center;gap:10px;padding:8px 12px}
+.sidebar-avatar{width:32px;height:32px;border-radius:50%;background:var(--g400);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--white);border-bottom:1px solid var(--gray-200);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:var(--shadow-sm)}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-title{font-size:17px;font-weight:600;color:var(--gray-900)}
+.topbar-sub{font-size:11px;color:var(--gray-500);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.content{flex:1;overflow-y:auto;padding:24px}
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:4px}
+
+/* ══ CARDS ══════════════════════════════════════════ */
+.card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-sm)}
+.metric-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--r-md);padding:16px 20px;box-shadow:var(--shadow-sm);transition:box-shadow .2s}
+.metric-card:hover{box-shadow:var(--shadow-md)}
+.metric-label{font-size:11px;color:var(--gray-500);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.metric-value{font-size:24px;font-weight:700;color:var(--gray-900);line-height:1}
+.metric-sub{font-size:11px;color:var(--gray-500);margin-top:5px;display:flex;align-items:center;gap:4px}
+.metric-positive{color:var(--g600)}
+.metric-negative{color:var(--red-400)}
+.metric-icon{width:36px;height:36px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;margin-bottom:10px}
+
+/* ══ GRIDS ══════════════════════════════════════════ */
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+
+/* ══ SECTION ══════════════════════════════════════════ */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-size:16px;font-weight:600;color:var(--gray-900)}
+.section-sub{font-size:12px;color:var(--gray-500);margin-top:2px}
+
+/* ══ BUTTONS ══════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-sm);font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:var(--g600);color:var(--white)}
+.btn-primary:hover{background:var(--g800);transform:translateY(-1px);box-shadow:0 4px 12px rgba(46,125,50,.3)}
+.btn-outline{background:transparent;color:var(--gray-700);border:1px solid var(--gray-300)}
+.btn-outline:hover{background:var(--gray-100)}
+.btn-ghost{background:transparent;color:var(--g600);border:none;padding:6px 10px}
+.btn-ghost:hover{background:var(--g50)}
+.btn-sm{padding:6px 12px;font-size:13px}
+.btn-danger{background:var(--red-100);color:var(--red-600);border:1px solid #ffcdd2}
+.btn-icon{padding:8px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--gray-200);cursor:pointer;display:flex;align-items:center;color:var(--gray-600);transition:all .15s}
+.btn-icon:hover{background:var(--gray-100)}
+
+/* ══ FORMS ══════════════════════════════════════════ */
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.form-label{font-size:13px;font-weight:600;color:var(--gray-700)}
+.form-input{padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--r-sm);font-family:var(--font);font-size:14px;color:var(--gray-900);outline:none;transition:border .15s;background:var(--white)}
+.form-input:focus{border-color:var(--g400);box-shadow:0 0 0 3px rgba(76,175,80,.1)}
+.form-select{padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--r-sm);font-family:var(--font);font-size:14px;color:var(--gray-900);outline:none;background:var(--white);cursor:pointer;width:100%}
+.form-select:focus{border-color:var(--g400)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-hint{font-size:11px;color:var(--gray-500);margin-top:2px}
+
+/* ══ MODAL ══════════════════════════════════════════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px)}
+.modal{background:var(--white);border-radius:var(--r-xl);padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalIn .2s ease}
+.modal::-webkit-scrollbar{display:none}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.modal-title{font-size:18px;font-weight:700;color:var(--gray-900)}
+.modal-icon{width:40px;height:40px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--g50);margin-bottom:4px}
+
+/* ══ BADGES ══════════════════════════════════════════ */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:var(--r-full);font-size:11px;font-weight:600}
+.badge-green{background:var(--g50);color:var(--g700)}
+.badge-amber{background:var(--amber-100);color:var(--amber-600)}
+.badge-red{background:var(--red-100);color:var(--red-600)}
+.badge-sky{background:var(--sky-100);color:var(--sky-600)}
+.badge-gray{background:var(--gray-100);color:var(--gray-600)}
+.badge-purple{background:var(--purple-100);color:var(--purple-600)}
+
+/* ══ TABLE ══════════════════════════════════════════ */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em;padding:10px 14px;text-align:left;border-bottom:1px solid var(--gray-200)}
+td{font-size:13px;color:var(--gray-800);padding:12px 14px;border-bottom:1px solid var(--gray-100)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--gray-50)}
+
+/* ══ PROGRESS ══════════════════════════════════════════ */
+.progress-bar{height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--g400);border-radius:4px;transition:width .5s ease}
+.progress-fill.amber{background:var(--amber-400)}
+.progress-fill.red{background:var(--red-400)}
+
+/* ══ AUTH ══════════════════════════════════════════ */
+.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--g800) 0%,var(--g600) 55%,#66bb6a 100%);padding:16px}
+.auth-card{background:var(--white);border-radius:var(--r-xl);padding:36px 32px;width:100%;max-width:420px;box-shadow:var(--shadow-lg)}
+.auth-logo{text-align:center;margin-bottom:24px}
+.auth-logo h1{font-family:var(--font-head);font-size:30px;color:var(--g800)}
+.auth-logo p{font-size:13px;color:var(--gray-500);margin-top:6px;line-height:1.5;max-width:300px;margin-inline:auto}
+.auth-tabs{display:flex;gap:0;background:var(--gray-100);border-radius:var(--r-sm);padding:4px;margin-bottom:22px}
+.auth-tab{flex:1;padding:8px;border:none;background:none;border-radius:6px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;color:var(--gray-500);transition:all .15s}
+.auth-tab.active{background:var(--white);color:var(--g800);box-shadow:var(--shadow-sm)}
+
+/* ══ CROP CARD ══════════════════════════════════════════ */
+.crop-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--r-md);padding:16px;position:relative;overflow:hidden;transition:box-shadow .2s;cursor:default}
+.crop-card:hover{box-shadow:var(--shadow-md)}
+.crop-card-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0}
+.crop-name{font-size:15px;font-weight:600;color:var(--gray-900)}
+.crop-detail{font-size:12px;color:var(--gray-500);margin-top:2px}
+
+/* ══ TASK ══════════════════════════════════════════ */
+.task-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:var(--r-sm);border:1px solid var(--gray-200);margin-bottom:8px;transition:background .1s;background:var(--white)}
+.task-item:hover{background:var(--gray-50)}
+.task-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--gray-300);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.task-check.done{background:var(--g400);border-color:var(--g400)}
+.task-title{font-size:13px;font-weight:600;color:var(--gray-800)}
+.task-title.done{text-decoration:line-through;color:var(--gray-400);font-weight:400}
+.task-due{font-size:11px;color:var(--gray-500);margin-top:3px}
+
+/* ══ CHAT / SHAMBA BOT ══════════════════════════════════ */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 58px - 48px);max-height:700px}
+.chat-header{background:linear-gradient(135deg,var(--g800),var(--g600));padding:16px 20px;border-radius:var(--r-lg) var(--r-lg) 0 0;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.bot-orb{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:22px;animation:pulse 2.5s ease infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.2)}50%{box-shadow:0 0 0 8px rgba(255,255,255,.0)}}
+.chat-body{flex:1;overflow-y:auto;padding:16px;background:var(--gray-50);display:flex;flex-direction:column;gap:12px}
+.chat-body::-webkit-scrollbar{width:3px}
+.chat-body::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:3px}
+.chat-msg{display:flex;gap:8px;align-items:flex-end;animation:fadeUp .2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.chat-msg.bot{align-self:flex-start;max-width:80%}
+.chat-msg.user{align-self:flex-end;flex-direction:row-reverse;max-width:80%}
+.chat-avatar{width:28px;height:28px;border-radius:50%;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:1.5px solid var(--g200)}
+.chat-bubble{padding:10px 14px;border-radius:18px;font-size:13px;line-height:1.55;font-weight:400}
+.chat-msg.bot .chat-bubble{background:var(--white);color:var(--gray-900);border-bottom-left-radius:4px;box-shadow:var(--shadow-sm);border:1px solid var(--gray-200)}
+.chat-msg.user .chat-bubble{background:var(--g600);color:var(--white);border-bottom-right-radius:4px}
+.chat-suggestions{padding:10px 16px;display:flex;gap:6px;overflow-x:auto;background:var(--white);border-top:1px solid var(--gray-100);flex-shrink:0}
+.chat-suggestions::-webkit-scrollbar{display:none}
+.chip{background:var(--g50);color:var(--g700);border:1px solid var(--g200);border-radius:var(--r-full);padding:6px 14px;font-family:var(--font);font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;transition:all .15s;flex-shrink:0}
+.chip:hover{background:var(--g100);border-color:var(--g300)}
+.chat-input-row{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--white);border-top:1px solid var(--gray-200);border-radius:0 0 var(--r-lg) var(--r-lg);flex-shrink:0}
+.chat-input{flex:1;background:var(--gray-100);border:1.5px solid transparent;border-radius:var(--r-full);padding:10px 16px;font-family:var(--font);font-size:14px;color:var(--gray-900);outline:none;transition:border .15s}
+.chat-input:focus{border-color:var(--g300);background:var(--white)}
+.chat-send{width:38px;height:38px;border-radius:50%;background:var(--g600);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--white);flex-shrink:0;transition:background .15s}
+.chat-send:hover{background:var(--g800)}
+.typing-indicator{display:flex;gap:4px;padding:10px 14px;background:var(--white);border-radius:18px;border-bottom-left-radius:4px;width:fit-content;box-shadow:var(--shadow-sm);border:1px solid var(--gray-200)}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--gray-400);animation:typeBlink 1.2s ease infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typeBlink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+/* ══ VET DIRECTORY ══════════════════════════════════════ */
+.vet-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--r-md);padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;transition:box-shadow .2s}
+.vet-card:hover{box-shadow:var(--shadow-md)}
+.vet-avatar{width:52px;height:52px;border-radius:50%;background:var(--g50);border:2px solid var(--g200);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.vet-name{font-size:14px;font-weight:700;color:var(--gray-900)}
+.vet-spec{font-size:12px;color:var(--gray-500);margin-top:2px}
+.vet-county{font-size:11px;color:var(--gray-400);margin-top:2px}
+.vet-status{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--r-full);margin-top:4px}
+.vet-status.available{background:#dcfce7;color:#15803d}
+.vet-status.busy{background:var(--amber-100);color:var(--amber-600)}
+.vet-status::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.vet-actions{display:flex;gap:6px;margin-left:auto;flex-direction:column}
+.vet-btn{width:34px;height:34px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:transform .15s}
+.vet-btn:active{transform:scale(.9)}
+.vet-btn-call{background:var(--g50)}
+.vet-btn-msg{background:var(--g600);color:var(--white)}
+
+/* ══ ADS ══════════════════════════════════════════ */
+.ad-card{border-radius:var(--r-md);padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;border:1px solid transparent}
+.ad-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.ad-sponsored{position:absolute;top:6px;right:8px;font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.05em}
+.ad-logo{width:52px;height:52px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.ad-title{font-size:15px;font-weight:700}
+.ad-sub{font-size:12px;opacity:.75;margin-top:2px}
+.ad-cta{font-size:12px;font-weight:700;margin-top:6px;display:inline-flex;align-items:center;gap:4px}
+
+/* ══ GRANTS ══════════════════════════════════════════ */
+.grant-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--r-md);padding:16px;margin-bottom:10px;border-left:4px solid var(--g400)}
+.grant-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:var(--r-full);display:inline-block;margin-bottom:6px}
+.grant-title{font-size:14px;font-weight:700;color:var(--gray-900)}
+.grant-body{font-size:12px;color:var(--gray-600);margin-top:5px;line-height:1.6}
+.grant-deadline{font-size:11px;font-weight:700;color:var(--amber-600);margin-top:8px;display:flex;align-items:center;gap:4px}
+
+/* ══ PRO UPGRADE ══════════════════════════════════════ */
+.pro-card{background:linear-gradient(135deg,var(--g800),var(--g600));border-radius:var(--r-lg);padding:24px;color:var(--white);position:relative;overflow:hidden}
+.pro-card::before{content:'⭐';position:absolute;right:-10px;top:-10px;font-size:80px;opacity:.08;line-height:1}
+.pro-feature{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.85);margin-top:10px}
+.plan-option{border:2px solid var(--gray-200);border-radius:var(--r-md);padding:14px 16px;cursor:pointer;transition:border .15s;margin-bottom:8px}
+.plan-option.selected{border-color:var(--g400);background:var(--g50)}
+.plan-option:hover{border-color:var(--g300)}
+
+/* ══ WEATHER ══════════════════════════════════════════ */
+.weather-card{background:linear-gradient(135deg,#1565c0,#1976d2,#42a5f5);border-radius:var(--r-lg);padding:20px 24px;color:var(--white);position:relative;overflow:hidden}
+.weather-card::after{content:'';position:absolute;right:-30px;bottom:-30px;width:150px;height:150px;background:rgba(255,255,255,.06);border-radius:50%}
+.weather-temp{font-size:52px;font-weight:300;line-height:1;font-family:var(--font-head)}
+.forecast-day{text-align:center;background:rgba(255,255,255,.1);border-radius:var(--r-sm);padding:8px 6px;flex:1}
+
+/* ══ NOTIFICATION BELL ══════════════════════════════ */
+.notif-badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--red-400);border-radius:50%;font-size:9px;font-weight:700;color:var(--white);display:flex;align-items:center;justify-content:center;border:2px solid var(--white)}
+
+/* ══ RESPONSIVE ══════════════════════════════════════ */
+@media(max-width:768px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .form-row{grid-template-columns:1fr}
+  .content{padding:16px}
+  .topbar{padding:0 16px}
+  .chat-wrap{height:calc(100vh - 58px)}
+}
+
+/* ══ UTILS ══════════════════════════════════════════ */
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-2{gap:8px}.gap-3{gap:12px}
+.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mt-4{margin-top:16px}.mt-6{margin-top:24px}
+.mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}.mb-6{margin-bottom:24px}
+.text-sm{font-size:13px}.text-xs{font-size:11px}.text-gray{color:var(--gray-500)}.font-semibold{font-weight:600}
+.w-full{width:100%}.divider{height:1px;background:var(--gray-100);margin:14px 0}
+.empty-state{text-align:center;padding:48px 24px;color:var(--gray-400)}
+.empty-state .emoji{font-size:40px;margin-bottom:12px}
+.toast-container{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{padding:10px 20px;border-radius:var(--r-full);font-size:13px;font-weight:600;box-shadow:var(--shadow-md);animation:toastIn .25s ease;white-space:nowrap}
+.toast-success{background:var(--g800);color:var(--white)}
+.toast-error{background:var(--red-600);color:var(--white)}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .3s ease}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  AgriMateKE v3 — Full Featured
+//  Original sidebar UI + Shamba Bot + Vets + Ads + Grants + Pro
+// ═══════════════════════════════════════════════════
+
+// ── LANGUAGE ──────────────────────────────────────
+let LANG = 'en'
+const T = {
+  en:{
+    nav:{dashboard:'Dashboard',crops:'My Crops',livestock:'Livestock',sales:'Sales & Expenses',
+      tasks:'Tasks',weather:'Weather',market:'Market Prices',shamba:'Shamba Bot',
+      vets:'Vet Directory',ads:'Agri Deals',grants:'Govt Subsidies',settings:'Settings'},
+    dash:{greeting_m:'Good morning',greeting_a:'Good afternoon',greeting_e:'Good evening',
+      revenue:'Today\'s Revenue',net:'Net Profit (Month)',crops:'Active Crops',tasks:'Pending Tasks',
+      quick:'Quick Actions',activity:'Recent Activity'},
+    common:{save:'Save',cancel:'Cancel',add:'Add',ksh:'KSh',done:'Done',
+      overdue:'Overdue',pending:'Pending',no_data:'Nothing here yet',
+      sign_out:'Sign Out',upgrade:'Upgrade to Pro'},
+    auth:{welcome:'Welcome to AgriMateKE',tagline:'Your trusted digital companion for smarter, sustainable farming.',
+      login:'Sign In',register:'Create Account',email:'Email address',password:'Password',
+      name:'Full Name',phone:'Phone (0712345678)',county:'County',farm:'Farm Name',demo:'Explore Demo Account'}
+  },
+  sw:{
+    nav:{dashboard:'Dashibodi',crops:'Mazao Yangu',livestock:'Mifugo',sales:'Mauzo & Matumizi',
+      tasks:'Kazi',weather:'Hali ya Hewa',market:'Bei za Soko',shamba:'Shamba Bot',
+      vets:'Orodha ya Madaktari',ads:'Biashara za Kilimo',grants:'Ruzuku za Serikali',settings:'Mipangilio'},
+    dash:{greeting_m:'Habari ya asubuhi',greeting_a:'Habari ya mchana',greeting_e:'Habari ya jioni',
+      revenue:'Mapato ya Leo',net:'Faida Halisi (Mwezi)',crops:'Mazao Yanayokua',tasks:'Kazi Zinazosubiri',
+      quick:'Vitendo vya Haraka',activity:'Shughuli za Hivi Karibuni'},
+    common:{save:'Hifadhi',cancel:'Ghairi',add:'Ongeza',ksh:'KSh',done:'Imekamilika',
+      overdue:'Imechelewa',pending:'Inasubiri',no_data:'Hakuna kitu hapa bado',
+      sign_out:'Toka',upgrade:'Panda Mpango wa Pro'},
+    auth:{welcome:'Karibu AgriMateKE',tagline:'Msaidizi wako wa kidijitali kwa kilimo bora na endelevu.',
+      login:'Ingia',register:'Fungua Akaunti',email:'Barua pepe',password:'Nywila',
+      name:'Jina Kamili',phone:'Simu (0712345678)',county:'Kaunti',farm:'Jina la Shamba',demo:'Angalia Demo'}
+  }
+}
+function t(path){
+  const keys=path.split('.')
+  let v=T[LANG]; for(const k of keys){v=v?.[k]; if(!v)break}
+  if(!v){let fb=T.en; for(const k of keys)fb=fb?.[k]; return fb||path}
+  return v
+}
+
+// ── STATE ──────────────────────────────────────────
+let PAGE = 'auth'
+let AUTH = false
+let MODAL = null
+let SIDEBAR_OPEN = false
+let CHAT_MSGS = []
+let CHAT_TYPING = false
+let AUTH_MODE = 'login'
+let SELECTED_PLAN = 'monthly'
+let NID = 500
+
+function nid(){return ++NID}
+
+// ── DEMO DATA ──────────────────────────────────────
+const DB = {
+  user:{name:'',county:'',farm:'',email:'',phone:'',plan:'free'},
+  crops:[
+    {id:1,name:'Maize',variety:'H614D',acres:2,planted:'2026-01-15',harvest:'2026-05-20',stage:'ready',notes:'Nearly ready to harvest'},
+    {id:2,name:'Kales (Sukuma)',variety:'',acres:0.5,planted:'2026-03-01',harvest:'2026-04-20',stage:'fruiting',notes:''},
+    {id:3,name:'Tomatoes',variety:'Kilele F1',acres:1,planted:'2026-02-10',harvest:'2026-06-10',stage:'flowering',notes:'Watch for blight'},
+    {id:4,name:'Beans',variety:'Rosecoco',acres:1.5,planted:'2026-03-20',harvest:'2026-06-20',stage:'seedling',notes:''},
+  ],
+  livestock:[
+    {id:1,emoji:'🐔',name:'Layer Flock A',type:'Layers',count:120,eggs:98,milk:0,notes:'Lohmann Brown'},
+    {id:2,emoji:'🐓',name:'Broilers Batch 3',type:'Broilers',count:220,eggs:0,milk:0,notes:'Ross 308, 4 weeks'},
+    {id:3,emoji:'🐄',name:'Dairy Herd',type:'Dairy',count:8,eggs:0,milk:48,notes:'Friesian crossbreeds'},
+  ],
+  sales:[
+    {id:1,item:'Eggs (30 trays)',cat:'eggs',total:12600,buyer:'Naivas',date:'2026-05-01'},
+    {id:2,item:'Kales 80kg',cat:'crops',total:2800,buyer:'Githurai Market',date:'2026-04-30'},
+    {id:3,item:'Milk 120L',cat:'milk',total:6600,buyer:'Brookside',date:'2026-04-28'},
+    {id:4,item:'20 Broilers',cat:'livestock',total:13000,buyer:'Local butcher',date:'2026-04-25'},
+  ],
+  expenses:[
+    {id:1,desc:'Layer mash - 10 bags',cat:'feed',amount:8500,date:'2026-04-28'},
+    {id:2,desc:'CAN 50kg × 4',cat:'fertilizer',amount:6200,date:'2026-04-25'},
+    {id:3,desc:'Weeding labour',cat:'labour',amount:3600,date:'2026-04-20'},
+    {id:4,desc:'Newcastle vaccine',cat:'vet',amount:2800,date:'2026-04-10'},
+  ],
+  tasks:[
+    {id:1,title:'Vaccinate layers — Newcastle',due:'2026-05-04',priority:'high',done:false},
+    {id:2,title:'Apply CAN to maize field',due:'2026-05-03',priority:'medium',done:false},
+    {id:3,title:'Restock layer mash (3 bags)',due:'2026-05-01',priority:'high',done:false},
+    {id:4,title:'Morning milking',due:'2026-05-02',priority:'medium',done:true},
+    {id:5,title:'Spray tomatoes for blight',due:'2026-05-06',priority:'medium',done:false},
+  ],
+  prices:{
+    Nairobi:[
+      {name:'Maize',val:3800,unit:'90kg bag',trend:'up',pct:'+3%'},
+      {name:'Tomatoes',val:6200,unit:'crate',trend:'up',pct:'+12%'},
+      {name:'Kales',val:35,unit:'kg',trend:'down',pct:'-5%'},
+      {name:'Beans (Rosecoco)',val:9500,unit:'90kg bag',trend:'stable',pct:'0%'},
+      {name:'Potatoes',val:3200,unit:'90kg bag',trend:'up',pct:'+7%'},
+      {name:'Avocado (Hass)',val:25,unit:'fruit',trend:'up',pct:'+15%'},
+      {name:'Eggs',val:14,unit:'egg',trend:'up',pct:'+1%'},
+      {name:'Milk',val:55,unit:'litre',trend:'stable',pct:'0%'},
+    ],
+    Nakuru:[
+      {name:'Maize',val:3200,unit:'90kg bag',trend:'up',pct:'+5%'},
+      {name:'Tomatoes',val:5500,unit:'crate',trend:'down',pct:'-3%'},
+      {name:'Beans',val:7800,unit:'90kg bag',trend:'up',pct:'+8%'},
+      {name:'Kales',val:28,unit:'kg',trend:'up',pct:'+2%'},
+      {name:'Milk',val:52,unit:'litre',trend:'stable',pct:'0%'},
+    ],
+    Mombasa:[
+      {name:'Maize',val:4100,unit:'90kg bag',trend:'up',pct:'+2%'},
+      {name:'Tomatoes',val:7000,unit:'crate',trend:'up',pct:'+10%'},
+      {name:'Onions',val:90,unit:'kg',trend:'down',pct:'-8%'},
+      {name:'Cassava',val:45,unit:'kg',trend:'stable',pct:'0%'},
+    ],
+  },
+  vets:[
+    {id:1,name:'Dr. Mary Mwangi',spec:'Livestock Specialist',county:'Nairobi',emoji:'👩‍⚕️',status:'available',phone:'0722111222',rating:4.8,reviews:34},
+    {id:2,name:'Dr. Paul Kamau',spec:'Veterinary Officer',county:'Kiambu',emoji:'👨‍⚕️',status:'available',phone:'0733222333',rating:4.6,reviews:28},
+    {id:3,name:'Dr. Aisha Omar',spec:'Poultry Expert',county:'Nakuru',emoji:'👩‍⚕️',status:'busy',phone:'0711333444',rating:4.9,reviews:51},
+    {id:4,name:'Dr. James Ochieng',spec:'Dairy Specialist',county:'Kisumu',emoji:'👨‍⚕️',status:'available',phone:'0700444555',rating:4.7,reviews:19},
+  ],
+  ads:[
+    {id:1,company:'FertiPlus Kenya',tagline:'Premium fertilizers for maximum yield',emoji:'🌿',bg:'#e8f5e9',color:'#2e7d32',cta:'Shop Now'},
+    {id:2,company:'AgroTech KE',tagline:'Certified seeds, tools & equipment',emoji:'🌱',bg:'#e3f2fd',color:'#1565c0',cta:'View Deals'},
+    {id:3,company:'KuruBirds Feeds',tagline:'Best poultry feeds in East Africa',emoji:'🐔',bg:'#fff8e1',color:'#e65100',cta:'Order Now'},
+    {id:4,company:'FarmVet Supplies',tagline:'Vaccines & veterinary drugs delivered',emoji:'💊',bg:'#f3e5f5',color:'#7b1fa2',cta:'Buy Online'},
+  ],
+  grants:[
+    {id:1,tag:'Government',tagColor:'badge-green',title:'Subsidized Fertilizer — NCPB 2026',body:'50% subsidized DAP and CAN fertilizer through NCPB stores. Available to all registered smallholder farmers with valid ID and KRA PIN.',deadline:'May 31, 2026',link:'#'},
+    {id:2,tag:'NGO',tagColor:'badge-sky',title:'One Acre Fund — Farm Input Loans',body:'Farm input loans with repayment tied to your harvest. Covers certified seeds, fertilizer, and crop insurance. No collateral required.',deadline:'Rolling — apply anytime',link:'#'},
+    {id:3,tag:'Government',tagColor:'badge-green',title:'Dairy Support Scheme — KDIC',body:'Kenya Dairy Industry Corporation offers free AI services and subsidized veterinary drugs for dairy farmers with 3+ cows. Register at your nearest KDIC office.',deadline:'June 15, 2026',link:'#'},
+    {id:4,tag:'Training',tagColor:'badge-amber',title:'KALRO Free Farmer Training',body:'Kenya Agricultural Research Organization: free climate-smart agriculture training in Nakuru, Kiambu, Meru. Certificate provided on completion.',deadline:'Next session: May 20, 2026',link:'#'},
+    {id:5,tag:'Government',tagColor:'badge-green',title:'Youth Agripreneur Fund',body:'Ministry of Agriculture grants of KSh 50,000–500,000 for youth-led agri-businesses. Age 18–35. Business plan required.',deadline:'June 30, 2026',link:'#'},
+  ],
+  activity:[
+    {icon:'💰',text:'Recorded sale: Eggs — KSh 12,600',time:'2h ago'},
+    {icon:'🌿',text:'Updated maize stage to "Ready to Harvest"',time:'5h ago'},
+    {icon:'✅',text:'Completed task: Morning milking',time:'8h ago'},
+    {icon:'📋',text:'Added expense: Layer mash KSh 8,500',time:'1d ago'},
+  ]
+}
+let MARKET_REGION = 'Nairobi'
+
+// ── HELPERS ──────────────────────────────────────
+function fmt(n){return 'KSh '+Number(n).toLocaleString()}
+function greetWord(){const h=new Date().getHours();return h<12?t('dash.greeting_m'):h<17?t('dash.greeting_a'):t('dash.greeting_e')}
+function today(){return new Date().toISOString().slice(0,10)}
+function stagePct(s){return{seedling:10,vegetative:35,flowering:55,fruiting:75,ready:95,harvested:100}[s]||0}
+function stageColor(s){return{seedling:'badge-sky',vegetative:'badge-green',flowering:'badge-amber',fruiting:'badge-amber',ready:'badge-green',harvested:'badge-gray'}[s]||'badge-gray'}
+function prioColor(p){return{low:'badge-sky',medium:'badge-amber',high:'badge-red'}[p]||'badge-gray'}
+function navigate(page){PAGE=page;SIDEBAR_OPEN=false;render()}
+
+function showToast(msg,type='success'){
+  const tc=document.getElementById('toast-container')
+  if(!tc)return
+  const el=document.createElement('div')
+  el.className=`toast toast-${type}`
+  el.textContent=msg
+  tc.appendChild(el)
+  setTimeout(()=>el.remove(),2800)
+}
+
+// ── SVG ICONS ─────────────────────────────────────
+const ICONS={
+  dashboard:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`,
+  crops:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22V12M12 12C12 8 8 4 4 4c0 4 3 8 8 8M12 12c0-4 4-8 8-8-1 4-4 8-8 8"/></svg>`,
+  livestock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3C5 3 3 5 3 8c0 2 1 4 3 5l1 2h8l1-2c2-1 3-3 3-5 0-3-2-5-5-5"/><path d="M9 17v4M15 17v4"/></svg>`,
+  sales:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>`,
+  tasks:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>`,
+  weather:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>`,
+  market:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>`,
+  bot:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="9" cy="16" r="1" fill="currentColor"/><circle cx="15" cy="16" r="1" fill="currentColor"/></svg>`,
+  vets:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
+  ads:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>`,
+  grants:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>`,
+  settings:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>`,
+  plus:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  x:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  check:`<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`,
+  menu:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`,
+  send:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,
+  star:`<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  call:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.09 9.79 19.79 19.79 0 01.1 1.14 2 2 0 012.11 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>`,
+  chat_icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>`,
+}
+function ic(name,size=18){return `<span style="display:inline-flex;width:${size}px;height:${size}px;flex-shrink:0">${ICONS[name]||''}</span>`}
+
+// ─────────────────────────────────────────────────
+//  RENDER ENGINE
+// ─────────────────────────────────────────────────
+function render(){
+  const root=document.getElementById('root')
+  if(!AUTH){root.innerHTML=renderAuth();return}
+  root.innerHTML=renderShell()
+  afterRender()
+}
+
+function renderShell(){
+  return `
+  <div class="app-shell">
+    ${renderSidebar()}
+    ${SIDEBAR_OPEN?`<div style="position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49" onclick="SIDEBAR_OPEN=false;render()"></div>`:''}
+    <div class="main">
+      ${renderTopbar()}
+      <div class="content fade-in" id="main-content">
+        ${renderPage()}
+      </div>
+    </div>
+  </div>
+  ${MODAL?renderModal():''}`
+}
+
+// ─────────────────────────────────────────────────
+//  SIDEBAR
+// ─────────────────────────────────────────────────
+function renderSidebar(){
+  const nav=[
+    {id:'dashboard',key:'dashboard'},{id:'crops',key:'crops'},{id:'livestock',key:'livestock'},
+    {id:'sales',key:'sales'},{id:'tasks',key:'tasks'},
+  ]
+  const tools=[
+    {id:'weather',key:'weather'},{id:'market',key:'market'},
+    {id:'shamba',key:'shamba'},{id:'vets',key:'vets'},
+  ]
+  const more=[
+    {id:'ads',key:'ads'},{id:'grants',key:'grants'},{id:'settings',key:'settings'},
+  ]
+  const overdueCount=DB.tasks.filter(t2=>!t2.done&&t2.due<today()).length
+  return `
+  <aside class="sidebar ${SIDEBAR_OPEN?'open':''}">
+    <div class="sidebar-logo">
+      <h1>🌱 AgriMateKE</h1>
+      <p>${t('auth.tagline').slice(0,42)}...</p>
+      <div class="farm-badge">🏡 ${DB.user.farm||'My Farm'}</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Farm Management</div>
+      ${nav.map(item=>`
+        <button class="nav-item ${PAGE===item.id?'active':''}" onclick="navigate('${item.id}')">
+          ${ic(item.key)} ${t('nav.'+item.key)}
+          ${item.id==='tasks'&&overdueCount>0?`<span class="nav-badge">${overdueCount}</span>`:''}
+        </button>`).join('')}
+      <div class="nav-label">Tools & Info</div>
+      ${tools.map(item=>`
+        <button class="nav-item ${PAGE===item.id?'active':''}" onclick="navigate('${item.id}')">
+          ${ic(item.key)} ${t('nav.'+item.key)}
+        </button>`).join('')}
+      <div class="nav-label">More</div>
+      ${more.map(item=>`
+        <button class="nav-item ${PAGE===item.id?'active':''}" onclick="navigate('${item.id}')">
+          ${ic(item.key)} ${t('nav.'+item.key)}
+        </button>`).join('')}
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">${DB.user.name?DB.user.name[0].toUpperCase():'?'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${DB.user.name||'Farmer'}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4)">${DB.user.plan==='pro'?'⭐ Mkulima Pro':'Free Plan'}</div>
+        </div>
+      </div>
+      <button class="nav-item" onclick="AUTH=false;PAGE='auth';render()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        ${t('common.sign_out')}
+      </button>
+    </div>
+  </aside>`
+}
+
+// ─────────────────────────────────────────────────
+//  TOPBAR
+// ─────────────────────────────────────────────────
+function renderTopbar(){
+  const titles={dashboard:t('nav.dashboard'),crops:t('nav.crops'),livestock:t('nav.livestock'),
+    sales:t('nav.sales'),tasks:t('nav.tasks'),weather:t('nav.weather'),market:t('nav.market'),
+    shamba:t('nav.shamba'),vets:t('nav.vets'),ads:t('nav.ads'),grants:t('nav.grants'),settings:t('nav.settings')}
+  const subs={dashboard:`${DB.user.farm||'My Farm'} · ${DB.user.county||'Kenya'}`,
+    shamba:'AI-powered farming assistant',vets:'Find and contact verified vets',
+    ads:'Agro-company deals & products',grants:'Government subsidies & NGO grants'}
+  return `
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="btn-icon" id="menu-btn" style="display:none" onclick="SIDEBAR_OPEN=!SIDEBAR_OPEN;render()">${ic('menu')}</button>
+      <div>
+        <div class="topbar-title">${titles[PAGE]||'AgriMateKE'}</div>
+        <div class="topbar-sub">${subs[PAGE]||new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-sm btn-outline" onclick="LANG=LANG==='en'?'sw':'en';render()">
+        ${LANG==='en'?'🇰🇪 Swahili':'🇬🇧 English'}
+      </button>
+      ${DB.user.plan!=='pro'?`<button class="btn btn-sm btn-primary" onclick="navigate('settings')" style="background:linear-gradient(135deg,#f57f17,#ff8f00)">⭐ Go Pro</button>`:''}
+      <div style="width:34px;height:34px;border-radius:50%;background:var(--g600);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;cursor:pointer" onclick="navigate('settings')">${DB.user.name?DB.user.name[0].toUpperCase():'?'}</div>
+    </div>
+  </header>
+  <style>@media(max-width:768px){#menu-btn{display:flex!important}}</style>`
+}
+
+// ─────────────────────────────────────────────────
+//  PAGE ROUTER
+// ─────────────────────────────────────────────────
+function renderPage(){
+  const pages={dashboard:pgDashboard,crops:pgCrops,livestock:pgLivestock,sales:pgSales,
+    tasks:pgTasks,weather:pgWeather,market:pgMarket,shamba:pgShamba,
+    vets:pgVets,ads:pgAds,grants:pgGrants,settings:pgSettings}
+  return (pages[PAGE]||pgDashboard)()
+}
+
+// ─────────────────────────────────────────────────
+//  DASHBOARD
+// ─────────────────────────────────────────────────
+function pgDashboard(){
+  const totalSales=DB.sales.reduce((s,x)=>s+x.total,0)
+  const totalExp=DB.expenses.reduce((s,x)=>s+x.amount,0)
+  const net=totalSales-totalExp
+  const activeCrops=DB.crops.filter(c=>c.stage!=='harvested').length
+  const pendingTasks=DB.tasks.filter(t2=>!t2.done).length
+  const overdueCount=DB.tasks.filter(t2=>!t2.done&&t2.due<today()).length
+  const todaySales=DB.sales.filter(s=>s.date===today()).reduce((s,x)=>s+x.total,0)
+  const last7=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);last7.push({label:d.toLocaleDateString('en-GB',{weekday:'short'}),value:DB.sales.filter(s=>s.date===ds).reduce((s,x)=>s+x.total,0)})}
+
+  return `
+<!-- Greeting -->
+<div class="mb-4">
+  <h2 style="font-family:var(--font-head);font-size:26px;color:var(--gray-900)">${greetWord()}, ${DB.user.name?.split(' ')[0]||'Farmer'} 👋</h2>
+  <p class="text-sm text-gray mt-1">${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p>
+</div>
+
+${overdueCount>0?`
+<div style="background:var(--amber-100);border:1px solid var(--amber-400);border-radius:var(--r-md);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+  <span style="font-size:20px">⚠️</span>
+  <div style="flex:1"><p style="font-size:13px;font-weight:700;color:var(--amber-600)">${overdueCount} overdue task${overdueCount>1?'s':''} need attention</p>
+  <p style="font-size:12px;color:var(--amber-600)">${DB.tasks.filter(t2=>!t2.done&&t2.due<today()).map(t2=>t2.title).join(' · ')}</p></div>
+  <button class="btn btn-sm" style="background:var(--amber-400);color:var(--white);border:none;flex-shrink:0" onclick="navigate('tasks')">View →</button>
+</div>`:''}
+
+<!-- Metrics -->
+<div class="grid-4 mb-6">
+  <div class="metric-card">
+    <div class="metric-icon" style="background:var(--g50)">${ic('sales',20)}</div>
+    <div class="metric-label">${t('dash.revenue')}</div>
+    <div class="metric-value metric-positive">${fmt(todaySales||0)}</div>
+    <div class="metric-sub">Month: ${fmt(totalSales)}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon" style="background:${net>=0?'var(--g50)':'var(--red-100)'}">💹</div>
+    <div class="metric-label">${t('dash.net')}</div>
+    <div class="metric-value ${net>=0?'metric-positive':'metric-negative'}">${fmt(Math.abs(net))}</div>
+    <div class="metric-sub">${net>=0?'▲ Profit':'▼ Loss'} · Expenses: ${fmt(totalExp)}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon" style="background:var(--sky-100)">${ic('crops',20)}</div>
+    <div class="metric-label">${t('dash.crops')}</div>
+    <div class="metric-value">${activeCrops}</div>
+    <div class="metric-sub">🌾 ${DB.crops.filter(c=>c.stage==='ready').length} ready to harvest</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon" style="background:${overdueCount>0?'var(--red-100)':'var(--amber-100)'}">${ic('tasks',20)}</div>
+    <div class="metric-label">${t('dash.tasks')}</div>
+    <div class="metric-value ${overdueCount>0?'metric-negative':''}">${pendingTasks}</div>
+    <div class="metric-sub">${overdueCount>0?`⚠️ ${overdueCount} overdue`:'All on track'}</div>
+  </div>
+</div>
+
+<div class="grid-2 mb-4">
+  <!-- Revenue Chart -->
+  <div class="card">
+    <div class="section-header">
+      <div><div class="section-title">Revenue — Last 7 Days</div><div class="section-sub">Month total: ${fmt(totalSales)}</div></div>
+      <button class="btn btn-sm btn-ghost" onclick="navigate('sales')">Details →</button>
+    </div>
+    <canvas id="rev-chart" height="130"></canvas>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="card">
+    <div class="section-title mb-4">${t('dash.quick')}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${[
+        {icon:'💰',label:'Record Sale',modal:'add_sale'},
+        {icon:'📋',label:'Add Expense',modal:'add_expense'},
+        {icon:'🤖',label:'Ask Shamba Bot',page:'shamba'},
+        {icon:'✅',label:'Add Task',modal:'add_task'},
+        {icon:'🌿',label:'Add Crop',modal:'add_crop'},
+        {icon:'🐄',label:'Daily Record',modal:'add_record'},
+      ].map(a=>`
+        <button class="btn btn-outline" style="justify-content:flex-start;gap:8px;font-size:13px" onclick="${a.modal?`openModal('${a.modal}')`:`navigate('${a.page}')`}">
+          <span style="font-size:18px">${a.icon}</span>${a.label}
+        </button>`).join('')}
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Recent tasks -->
+  <div class="card">
+    <div class="section-header">
+      <div class="section-title">Today's Tasks</div>
+      <button class="btn btn-sm btn-ghost" onclick="navigate('tasks')">All →</button>
+    </div>
+    ${DB.tasks.slice(0,4).map(task=>`
+      <div class="task-item" onclick="completeTask(${task.id})">
+        <div class="task-check ${task.done?'done':''}">${task.done?ic('check',10):''}</div>
+        <div style="flex:1">
+          <div class="task-title ${task.done?'done':''}">${task.title}</div>
+          <div class="task-due">${task.due} · <span class="badge ${prioColor(task.priority)}" style="padding:1px 7px">${task.priority}</span></div>
+        </div>
+      </div>`).join('')}
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="card">
+    <div class="section-title mb-4">${t('dash.activity')}</div>
+    ${DB.activity.map(a=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--gray-100)">
+        <span style="font-size:18px;flex-shrink:0">${a.icon}</span>
+        <div style="flex:1"><div style="font-size:13px;color:var(--gray-800)">${a.text}</div></div>
+        <div style="font-size:11px;color:var(--gray-400);flex-shrink:0">${a.time}</div>
+      </div>`).join('')}
+
+    <!-- Shamba Bot teaser -->
+    <div style="margin-top:14px;background:linear-gradient(135deg,var(--g800),var(--g600));border-radius:var(--r-md);padding:14px;cursor:pointer" onclick="navigate('shamba')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:20px">🤖</span>
+        <div style="font-size:14px;font-weight:600;color:var(--white)">Shamba Bot says...</div>
+      </div>
+      <p style="font-size:12px;color:rgba(255,255,255,.85);line-height:1.5">Your maize is ready to harvest and tomato prices are 18% above average this week. Good time to plan your market run! Tap to ask more.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const ctx=document.getElementById('rev-chart');if(!ctx)return;
+  if(window._rc)window._rc.destroy();
+  const d=${JSON.stringify(last7)};
+  window._rc=new Chart(ctx,{type:'bar',data:{labels:d.map(x=>x.label),datasets:[{data:d.map(x=>x.value),backgroundColor:d.map(x=>x.value>0?'#4caf50':'#eeeeee'),borderRadius:6,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'KSh '+c.raw.toLocaleString()}}},scales:{y:{ticks:{callback:v=>'KSh '+(v/1000).toFixed(0)+'k',font:{family:'Outfit',size:11}},grid:{color:'#f5f5f5'}},x:{ticks:{font:{family:'Outfit',size:11}},grid:{display:false}}}}})
+})()
+<\/script>`
+}
+
+// ─────────────────────────────────────────────────
+//  CROPS
+// ─────────────────────────────────────────────────
+function pgCrops(){
+  return `
+<div class="section-header mb-4">
+  <div><div class="section-title" style="font-size:20px">${t('nav.crops')}</div><div class="section-sub">${DB.crops.filter(c=>c.stage!=='harvested').length} growing · ${DB.crops.filter(c=>c.stage==='ready').length} ready to harvest</div></div>
+  <button class="btn btn-primary" onclick="openModal('add_crop')">${ic('plus',14)} Add Crop</button>
+</div>
+<div class="grid-3">
+${DB.crops.map(c=>{const pct=stagePct(c.stage);const barColor=pct>=80?'#4caf50':pct>=50?'#ffca28':'#29b6f6';return `
+  <div class="crop-card">
+    <div class="crop-card-bar" style="background:${barColor}"></div>
+    <div class="flex justify-between items-center mb-2">
+      <div class="crop-name">${c.name}</div>
+      <span class="badge ${stageColor(c.stage)}">${c.stage}</span>
+    </div>
+    ${c.variety?`<div class="crop-detail">Variety: ${c.variety}</div>`:''}
+    <div class="crop-detail">${c.acres} acres · Planted ${c.planted}</div>
+    ${c.harvest?`<div class="crop-detail">Expected harvest: ${c.harvest}</div>`:''}
+    ${c.notes?`<div class="crop-detail mt-2" style="font-style:italic">📝 ${c.notes}</div>`:''}
+    <div class="mt-3">
+      <div class="flex justify-between text-xs text-gray mb-1"><span>Growth</span><span>${pct}%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
+    </div>
+    <div class="flex gap-2 mt-3">
+      <select class="form-select" style="flex:1;padding:6px 8px;font-size:12px" onchange="updateCropStage(${c.id},this.value)">
+        ${['seedling','vegetative','flowering','fruiting','ready','harvested'].map(s=>`<option value="${s}" ${c.stage===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+      <button class="btn-icon" onclick="deleteCrop(${c.id})" style="color:var(--red-400)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+      </button>
+    </div>
+  </div>`}).join('')}
+  <div class="crop-card" style="display:flex;align-items:center;justify-content:center;cursor:pointer;border-style:dashed;min-height:160px;border-color:var(--gray-300)" onclick="openModal('add_crop')">
+    <div style="text-align:center;color:var(--gray-400)"><div style="font-size:32px">+</div><div class="text-sm mt-1">Add a crop</div></div>
+  </div>
+</div>`
+}
+
+// ─────────────────────────────────────────────────
+//  LIVESTOCK
+// ─────────────────────────────────────────────────
+function pgLivestock(){
+  const totalAnimals=DB.livestock.reduce((s,g)=>s+g.count,0)
+  const todayEggs=DB.livestock.reduce((s,g)=>s+g.eggs,0)
+  const todayMilk=DB.livestock.reduce((s,g)=>s+g.milk,0)
+  return `
+<div class="section-header mb-4">
+  <div><div class="section-title" style="font-size:20px">${t('nav.livestock')}</div><div class="section-sub">${totalAnimals} animals · ${DB.livestock.length} groups</div></div>
+  <div class="flex gap-2">
+    <button class="btn btn-outline btn-sm" onclick="openModal('add_record')">📋 Record</button>
+    <button class="btn btn-primary" onclick="openModal('add_livestock')">${ic('plus',14)} Add Group</button>
+  </div>
+</div>
+<div class="grid-4 mb-6">
+  <div class="metric-card"><div class="metric-label">Total Animals</div><div class="metric-value">${totalAnimals}</div></div>
+  <div class="metric-card"><div class="metric-label">Eggs Today</div><div class="metric-value metric-positive">${todayEggs}</div></div>
+  <div class="metric-card"><div class="metric-label">Milk Today</div><div class="metric-value metric-positive">${todayMilk}L</div></div>
+  <div class="metric-card"><div class="metric-label">Groups</div><div class="metric-value">${DB.livestock.length}</div></div>
+</div>
+<div class="grid-3">
+${DB.livestock.map(g=>`
+  <div class="card">
+    <div style="font-size:32px;margin-bottom:10px">${g.emoji}</div>
+    <div style="font-size:15px;font-weight:700">${g.name}</div>
+    <div class="text-sm text-gray">${g.type}</div>
+    ${g.notes?`<div class="text-xs text-gray mt-1">${g.notes}</div>`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px">
+      <div style="background:var(--gray-50);border-radius:var(--r-sm);padding:10px;text-align:center">
+        <div style="font-size:10px;color:var(--gray-500);font-weight:700;text-transform:uppercase">Count</div>
+        <div style="font-size:22px;font-weight:700;color:var(--gray-900)">${g.count}</div>
+      </div>
+      ${g.eggs>0?`<div style="background:var(--g50);border-radius:var(--r-sm);padding:10px;text-align:center"><div style="font-size:10px;color:var(--g600);font-weight:700;text-transform:uppercase">Eggs</div><div style="font-size:22px;font-weight:700;color:var(--g700)">${g.eggs}</div></div>`:''}
+      ${g.milk>0?`<div style="background:var(--g50);border-radius:var(--r-sm);padding:10px;text-align:center"><div style="font-size:10px;color:var(--g600);font-weight:700;text-transform:uppercase">Milk L</div><div style="font-size:22px;font-weight:700;color:var(--g700)">${g.milk}</div></div>`:''}
+    </div>
+    <button class="btn btn-outline w-full mt-3" style="font-size:13px;justify-content:center" onclick="openModal('add_record')">Record Today</button>
+  </div>`).join('')}
+</div>`
+}
+
+// ─────────────────────────────────────────────────
+//  SALES & EXPENSES
+// ─────────────────────────────────────────────────
+function pgSales(){
+  const ts=DB.sales.reduce((s,x)=>s+x.total,0)
+  const te=DB.expenses.reduce((s,x)=>s+x.amount,0)
+  return `
+<div class="section-header mb-4">
+  <div class="section-title" style="font-size:20px">${t('nav.sales')}</div>
+  <div class="flex gap-2">
+    <button class="btn btn-outline btn-sm" onclick="openModal('add_expense')">${ic('plus',12)} Expense</button>
+    <button class="btn btn-primary btn-sm" onclick="openModal('add_sale')">${ic('plus',12)} Sale</button>
+  </div>
+</div>
+<div class="grid-4 mb-6">
+  <div class="metric-card"><div class="metric-label">Total Revenue</div><div class="metric-value metric-positive">${fmt(ts)}</div></div>
+  <div class="metric-card"><div class="metric-label">Total Expenses</div><div class="metric-value metric-negative">${fmt(te)}</div></div>
+  <div class="metric-card"><div class="metric-label">Net Profit</div><div class="metric-value ${ts-te>=0?'metric-positive':'metric-negative'}">${fmt(ts-te)}</div></div>
+  <div class="metric-card"><div class="metric-label">Profit Margin</div><div class="metric-value">${ts>0?Math.round(((ts-te)/ts)*100):0}%</div></div>
+</div>
+<div class="grid-2">
+  <div class="card">
+    <div class="section-header"><div class="section-title">Sales</div><button class="btn btn-sm btn-primary" onclick="openModal('add_sale')">${ic('plus',12)}</button></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Item</th><th>Total</th><th>Date</th></tr></thead><tbody>
+      ${DB.sales.map(s=>`<tr><td><div style="font-weight:600">${s.item}</div><div style="font-size:11px;color:var(--gray-500)">${s.buyer||'—'}</div></td><td style="color:var(--g600);font-weight:700">${fmt(s.total)}</td><td>${s.date}</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-header"><div class="section-title">Expenses</div><button class="btn btn-sm btn-outline" onclick="openModal('add_expense')">${ic('plus',12)}</button></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Description</th><th>Amount</th><th>Date</th></tr></thead><tbody>
+      ${DB.expenses.map(e=>`<tr><td><div style="font-weight:600">${e.desc}</div><div style="font-size:11px;color:var(--gray-500)">${e.cat}</div></td><td style="color:var(--red-400);font-weight:700">${fmt(e.amount)}</td><td>${e.date}</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+  </div>
+</div>`
+}
+
+// ─────────────────────────────────────────────────
+//  TASKS
+// ─────────────────────────────────────────────────
+function pgTasks(){
+  const tod=today()
+  const pending=DB.tasks.filter(t2=>!t2.done)
+  const done=DB.tasks.filter(t2=>t2.done)
+  return `
+<div class="section-header mb-4">
+  <div class="section-title" style="font-size:20px">${t('nav.tasks')}</div>
+  <button class="btn btn-primary" onclick="openModal('add_task')">${ic('plus',14)} Add Task</button>
+</div>
+<div class="grid-2">
+  <div>
+    <div class="text-xs text-gray font-semibold mb-3" style="text-transform:uppercase;letter-spacing:.05em">Pending (${pending.length})</div>
+    ${pending.length===0?`<div class="empty-state"><div class="emoji">🎉</div><p>No pending tasks</p></div>`:''}
+    ${pending.map(task=>{const ov=task.due<tod;return`
+      <div class="task-item ${ov?'':''}">
+        <div class="task-check" onclick="completeTask(${task.id})" style="cursor:pointer;${ov?'border-color:var(--red-400)':''}"></div>
+        <div style="flex:1">
+          <div class="task-title">${task.title}</div>
+          <div class="task-due"><span ${ov?'style="color:var(--red-400);font-weight:700"':''}>${task.due}</span> · <span class="badge ${prioColor(task.priority)}" style="padding:1px 7px">${task.priority}</span>${ov?` <span class="badge badge-red" style="padding:1px 7px">${t('common.overdue')}</span>`:''}</div>
+        </div>
+        <button class="btn-icon" style="color:var(--red-400)" onclick="deleteTask(${task.id})"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+      </div>`}).join('')}
+  </div>
+  <div>
+    <div class="text-xs text-gray font-semibold mb-3" style="text-transform:uppercase;letter-spacing:.05em">Completed (${done.length})</div>
+    ${done.map(task=>`
+      <div class="task-item" style="opacity:.55">
+        <div class="task-check done">${ic('check',10)}</div>
+        <div class="task-title done">${task.title}</div>
+      </div>`).join('')}
+  </div>
+</div>`
+}
+
+// ─────────────────────────────────────────────────
+//  WEATHER
+// ─────────────────────────────────────────────────
+function pgWeather(){
+  const forecast=[{d:'Thu',i:'⛅',h:23,l:15},{d:'Fri',i:'🌧️',h:19,l:14},{d:'Sat',i:'🌧️',h:18,l:13},{d:'Sun',i:'🌤️',h:21,l:14},{d:'Mon',i:'☀️',h:25,l:16},{d:'Tue',i:'☀️',h:26,l:17},{d:'Wed',i:'⛅',h:24,l:15}]
+  return `
+<div class="weather-card mb-6" style="position:relative">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <div style="font-size:13px;opacity:.7;margin-bottom:6px">📍 ${DB.user.county||'Nairobi'}, Kenya</div>
+      <div class="weather-temp">28°C</div>
+      <div style="font-size:16px;margin-top:4px;opacity:.9">☀️ Sunny</div>
+      <div style="font-size:13px;opacity:.7;margin-top:6px">💧 65% humidity · 💨 12 km/h</div>
+    </div>
+    <div style="font-size:72px;line-height:1">☀️</div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:20px">
+    ${forecast.map(f=>`<div class="forecast-day"><div style="font-size:11px;opacity:.65">${f.d}</div><div style="font-size:20px;margin:4px 0">${f.i}</div><div style="font-size:12px;font-weight:700">${f.h}°</div><div style="font-size:10px;opacity:.55">${f.l}°</div></div>`).join('')}
+  </div>
+</div>
+
+<div class="section-title mb-3">🌱 Farming Advisory</div>
+<div class="grid-2 mb-4">
+${[
+  {icon:'☔',bg:'var(--g50)',bc:'var(--g200)',tc:'var(--g800)',title:'Rain expected Fri–Sat',body:'Harvest kales before Friday. Delay any fertilizer application until after the rain. Good for maize at current stage.'},
+  {icon:'⚠️',bg:'var(--amber-100)',bc:'var(--amber-400)',tc:'var(--amber-600)',title:'Blight risk elevated',body:'High humidity this weekend. Apply Ridomil or copper fungicide to your tomatoes by Thursday morning.'},
+  {icon:'💧',bg:'var(--sky-100)',bc:'var(--sky-400)',tc:'var(--sky-600)',title:'Dry spell next week',body:'Plan irrigation for Monday. Ensure water storage is full before the dry period begins.'},
+  {icon:'🌾',bg:'var(--g50)',bc:'var(--g200)',tc:'var(--g700)',title:'Maize harvest window',body:'Your maize is at 95% growth. Optimal harvest window is May 5–10. Arrange transport and storage in advance.'},
+].map(a=>`
+  <div style="background:${a.bg};border:1px solid ${a.bc};border-radius:var(--r-md);padding:14px 16px">
+    <div style="font-size:13px;font-weight:700;color:${a.tc}">${a.icon} ${a.title}</div>
+    <div style="font-size:12px;color:${a.tc};opacity:.8;margin-top:5px;line-height:1.6">${a.body}</div>
+  </div>`).join('')}
+</div>`
+}
+
+// ─────────────────────────────────────────────────
+//  MARKET PRICES
+// ─────────────────────────────────────────────────
+function pgMarket(){
+  const prices=DB.prices[MARKET_REGION]||DB.prices.Nairobi
+  return `
+<div class="section-header mb-4">
+  <div class="section-title" style="font-size:20px">${t('nav.market')}</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--g400);animation:pulse 2s ease infinite"></div>
+    <span class="text-xs text-gray">Live · Updated hourly</span>
+  </div>
+</div>
+<style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>
+
+<select class="form-select mb-4" style="max-width:250px" onchange="MARKET_REGION=this.value;render()">
+  ${Object.keys(DB.prices).map(r=>`<option value="${r}" ${r===MARKET_REGION?'selected':''}>📍 Region: ${r}</option>`).join('')}
+</select>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="section-title mb-3">${MARKET_REGION} Prices</div>
+    ${prices.map(p=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--gray-100)">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--gray-900)">${p.name}</div>
+          <div style="font-size:11px;color:var(--gray-500)">per ${p.unit}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-size:15px;font-weight:700;color:var(--g700)">${fmt(p.val)}</div>
+          <span class="badge ${p.trend==='up'?'badge-green':p.trend==='down'?'badge-red':'badge-gray'}" style="font-size:10px">${p.pct}</span>
+        </div>
+      </div>`).join('')}
+  </div>
+
+  <div>
+    <div class="card mb-4" style="background:linear-gradient(135deg,var(--g800),var(--g600));border:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:24px">🤖</span>
+        <div style="font-size:15px;font-weight:600;color:var(--white)">Shamba Bot Market Insight</div>
+      </div>
+      <p style="font-size:13px;color:rgba(255,255,255,.85);line-height:1.6">Tomato prices in ${MARKET_REGION} are currently above the 30-day average. Your tomatoes are flowering — estimated harvest in 35 days. Consider pre-booking a buyer now before the rains push prices down.</p>
+      <button class="btn btn-sm mt-3" style="background:rgba(255,255,255,.15);color:var(--white);border:none" onclick="navigate('shamba')">Ask Shamba Bot →</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title mb-3">📊 Price Trend Chart</div>
+      <canvas id="price-chart" height="140"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const ctx=document.getElementById('price-chart');if(!ctx)return;
+  if(window._pc)window._pc.destroy();
+  window._pc=new Chart(ctx,{type:'line',data:{labels:['Jan','Feb','Mar','Apr','May'],datasets:[{label:'Maize (90kg)',data:[3100,3300,3500,3650,3800],borderColor:'#4caf50',backgroundColor:'rgba(76,175,80,.08)',tension:.4,fill:true},{label:'Tomatoes (crate)',data:[4800,5200,5800,5500,6200],borderColor:'#29b6f6',backgroundColor:'rgba(41,182,246,.08)',tension:.4,fill:true}]},options:{responsive:true,plugins:{legend:{labels:{font:{family:'Outfit',size:11}}}},scales:{y:{ticks:{callback:v=>'KSh '+(v/1000).toFixed(1)+'k',font:{family:'Outfit',size:10}},grid:{color:'#f5f5f5'}},x:{ticks:{font:{family:'Outfit',size:11}},grid:{display:false}}}}})
+})()
+<\/script>`
+}
+
+// ─────────────────────────────────────────────────
+//  SHAMBA BOT
+// ─────────────────────────────────────────────────
+const BOT_REPLIES={
+  weather:['🌦️ Current: 28°C, Sunny in your area. Rain expected Friday–Saturday. Hold off on spraying before the rain — apply your fungicide by Thursday. Good planting window today and tomorrow.','☀️ Clear and warm today — great for harvesting and drying. Long rains continue through May. Your maize harvest timing looks ideal this week.'],
+  pest:['🐛 For tomato blight (current risk is HIGH due to humidity): Remove affected leaves, apply Ridomil or Dithane M45, spray in the morning. Repeat every 7 days. Avoid wetting leaves when irrigating.','🌿 Top pests this season: Aphids on beans (neem oil or Dimethoate), Fall Armyworm on maize (Cypermethrin), Blight on tomatoes (copper fungicide). Which crop do you need help with?'],
+  profit:['📊 Farm summary this month:\n• Revenue: KSh 35,000\n• Expenses: KSh 21,100\n• Net Profit: KSh 13,900 ✅\n\nBest margin: Eggs from layers (~68%). Your dairy is your second best. Maize will add significant revenue at harvest.','💰 Your most profitable activity right now is egg production at ~68% margin. Consider expanding your layer flock from 120 to 200 birds — estimated ROI within 4 months.'],
+  market:['💹 Best prices right now:\n• Tomatoes: KSh 6,200/crate (Nairobi) — 18% above average 📈\n• Maize: KSh 3,800/90kg — good time to sell\n• Eggs: KSh 14/egg steady\n\nBest market: Wakulima, Nairobi — go before 9am.','🛒 Market tip: Kales prices dropped 5% this week due to oversupply. Hold if possible, or redirect to hotels/restaurants for better rates. Tomatoes remain strong.'],
+  crops:['🌾 Your maize is at 95% — ready to harvest. Optimal window: May 5–10 before the rains. Arrange transport now. Your kales are in fruiting stage — market in 1–2 weeks. Beans are seedlings, no action needed yet.','🍅 Tomato care at flowering stage: Ensure consistent watering, apply CAN fertilizer, watch for blight. Your harvest window is ~June 10 — prices should still be good.'],
+  vet:['🏥 For livestock health queries, I recommend contacting Dr. Mary Mwangi (Livestock Specialist, Nairobi) or Dr. Paul Kamau (Kiambu). Both are currently available. Go to the Vet Directory to contact them directly.','💊 Common livestock issues this season: Respiratory infections in broilers (high humidity), reduced milk in dairy (check feed quality and water access), Newcastle in layers (vaccine due — check your task list!).'],
+  default:['🌾 Hello! I\'m Shamba Bot, your AI farming companion. I can help you with:\n• Crop advice and disease treatment\n• Market prices and when to sell\n• Profit analysis and farm planning\n• Weather alerts and farming calendar\n• Livestock health tips\n\nWhat would you like to know?','👨‍🌾 Great question! Ask me about your crops, livestock, market prices, weather, or farm finances. I\'m trained on Kenyan farming data and updated weekly.'],
+}
+function getBotReply(msg){
+  const m=msg.toLowerCase()
+  if(m.includes('weather')||m.includes('rain')||m.includes('hali'))return BOT_REPLIES.weather[Math.random()>.5?1:0]
+  if(m.includes('pest')||m.includes('disease')||m.includes('blight')||m.includes('sick'))return BOT_REPLIES.pest[Math.random()>.5?1:0]
+  if(m.includes('profit')||m.includes('money')||m.includes('earn')||m.includes('revenue'))return BOT_REPLIES.profit[Math.random()>.5?1:0]
+  if(m.includes('price')||m.includes('market')||m.includes('sell')||m.includes('bei'))return BOT_REPLIES.market[Math.random()>.5?1:0]
+  if(m.includes('crop')||m.includes('maize')||m.includes('tomato')||m.includes('harvest'))return BOT_REPLIES.crops[Math.random()>.5?1:0]
+  if(m.includes('vet')||m.includes('cow')||m.includes('chicken')||m.includes('milk')||m.includes('egg'))return BOT_REPLIES.vet[Math.random()>.5?1:0]
+  return BOT_REPLIES.default[Math.random()>.5?1:0]
+}
+
+function pgShamba(){
+  if(CHAT_MSGS.length===0)CHAT_MSGS=[{role:'bot',text:'🌾 Hello! I\'m **Shamba Bot**, your AI farming companion powered by AgriMateKE.\n\nI can help with crop advice, market prices, disease treatment, profit analysis, and more. What would you like to know today?'}]
+  const chips=['🌧️ Weather today','🐛 Pest advice','💹 Market prices','📊 My profit','🌿 Crop tips','🏥 Livestock health']
+  return `
+<div class="chat-wrap">
+  <div class="chat-header">
+    <div class="bot-orb">🤖</div>
+    <div>
+      <div style="font-size:16px;font-weight:700;color:var(--white)">🌾 Shamba Bot</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.65)">AI-powered farming assistant · Online</div>
+    </div>
+    <div style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.5)">Powered by AgriMateKE AI</div>
+  </div>
+  <div class="chat-body" id="chat-body">
+    ${CHAT_MSGS.map(m=>`
+      <div class="chat-msg ${m.role}">
+        ${m.role==='bot'?`<div class="chat-avatar">🤖</div>`:''}
+        <div class="chat-bubble">${m.text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>
+        ${m.role==='user'?`<div class="chat-avatar" style="background:var(--g600);border-color:var(--g400)">👤</div>`:''}
+      </div>`).join('')}
+    ${CHAT_TYPING?`
+      <div class="chat-msg bot">
+        <div class="chat-avatar">🤖</div>
+        <div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+      </div>`:''}
+  </div>
+  <div class="chat-suggestions">
+    ${chips.map(c=>`<button class="chip" onclick="sendBot('${c}')">${c}</button>`).join('')}
+  </div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chat-in" placeholder="Ask Shamba Bot anything about your farm..." onkeydown="if(event.key==='Enter')sendChat()"/>
+    <button class="chat-send" onclick="sendChat()">${ic('send',16)}</button>
+  </div>
+</div>`
+}
+
+function sendChat(){const el=document.getElementById('chat-in');if(!el||!el.value.trim())return;sendBot(el.value.trim());el.value=''}
+function sendBot(msg){
+  CHAT_MSGS.push({role:'user',text:msg})
+  CHAT_TYPING=true;render();scrollChat()
+  setTimeout(()=>{CHAT_TYPING=false;CHAT_MSGS.push({role:'bot',text:getBotReply(msg)});render();scrollChat()},1200+Math.random()*600)
+}
+function scrollChat(){setTimeout(()=>{const b=document.getElementById('chat-body');if(b)b.scrollTop=b.scrollHeight},80)}
+
+// ─────────────────────────────────────────────────
+//  VET DIRECTORY
+// ─────────────────────────────────────────────────
+function pgVets(){
+  return `
+<div class="section-header mb-6">
+  <div><div class="section-title" style="font-size:20px">${t('nav.vets')}</div><div class="section-sub">Verified and credentialed veterinarians across Kenya</div></div>
+  <button class="btn btn-outline btn-sm" onclick="openModal('vet_register')">Register as Vet</button>
+</div>
+
+<div class="grid-2 mb-6">
+  <div class="card" style="background:var(--g50);border-color:var(--g200);cursor:pointer" onclick="openModal('request_visit')">
+    <div style="font-size:28px;margin-bottom:8px">🚜</div>
+    <div style="font-size:15px;font-weight:700;color:var(--g800)">Request Farm Visit</div>
+    <div style="font-size:13px;color:var(--g600);margin-top:4px">Book a vet to come to your farm. Available within 24–48 hours.</div>
+  </div>
+  <div class="card" style="background:var(--sky-100);border-color:var(--sky-400);cursor:pointer" onclick="navigate('shamba');setTimeout(()=>sendBot('I need livestock health advice'),200)">
+    <div style="font-size:28px;margin-bottom:8px">🤖</div>
+    <div style="font-size:15px;font-weight:700;color:var(--sky-600)">Ask Shamba Bot</div>
+    <div style="font-size:13px;color:var(--sky-600);margin-top:4px">Get instant livestock advice from our AI assistant — free, 24/7.</div>
+  </div>
+</div>
+
+<div class="section-title mb-3">Available Veterinarians</div>
+${DB.vets.map(v=>`
+  <div class="vet-card">
+    <div class="vet-avatar">${v.emoji}</div>
+    <div style="flex:1">
+      <div class="vet-name">${v.name}</div>
+      <div class="vet-spec">${v.spec}</div>
+      <div class="vet-county">📍 ${v.county}</div>
+      <div class="flex gap-2 items-center mt-1">
+        <span class="vet-status ${v.status}">${v.status==='available'?'Available':'Busy'}</span>
+        <span style="font-size:11px;color:var(--gray-500);display:flex;align-items:center;gap:2px">
+          <span style="color:#ffca28;font-size:13px">★</span>${v.rating} (${v.reviews} reviews)
+        </span>
+      </div>
+    </div>
+    <div class="vet-actions">
+      <button class="vet-btn vet-btn-call" onclick="showToast('Calling ${v.name}...')" title="Call">${ic('call',16)}</button>
+      <button class="vet-btn vet-btn-msg" onclick="navigate('shamba');setTimeout(()=>sendBot('I need a ${v.spec.toLowerCase()}'),200)" title="Message via Shamba Bot">${ic('chat_icon',15)}</button>
+    </div>
+  </div>`).join('')}
+
+<div style="background:var(--g50);border:1px dashed var(--g300);border-radius:var(--r-md);padding:20px;text-align:center;margin-top:8px">
+  <div style="font-size:24px;margin-bottom:8px">🏥</div>
+  <div style="font-size:15px;font-weight:700;color:var(--g800);margin-bottom:4px">Are you a licensed vet?</div>
+  <div style="font-size:13px;color:var(--gray-500);margin-bottom:14px">Join AgriMateKE's vet network. Upload your credentials — reviewed and approved by our admin team within 48 hours.</div>
+  <button class="btn btn-primary" onclick="openModal('vet_register')">Apply to Join →</button>
+</div>`
+}
+
+// ─────────────────────────────────────────────────
+//  AGRI DEALS (ADS)
+// ─────────────────────────────────────────────────
+function pgAds(){
+  return `
+<div class="section-header mb-2">
+  <div><div class="section-title" style="font-size:20px">${t('nav.ads')}</div><div class="section-sub">Products and deals from verified agro-companies</div></div>
+  <span class="badge badge-gray" style="font-size:10px">SPONSORED</span>
+</div>
+<p class="text-xs text-gray mb-6">AgriMateKE only features verified, relevant agricultural businesses. No hidden promotions.</p>
+<div class="grid-2 mb-4">
+${DB.ads.map(ad=>`
+  <div class="ad-card" style="background:${ad.bg};border-color:${ad.color}22" onclick="showToast('Opening ${ad.company}...')">
+    <span class="ad-sponsored">Sponsored</span>
+    <div class="ad-logo" style="background:${ad.color}22;font-size:28px">${ad.emoji}</div>
+    <div>
+      <div class="ad-title" style="color:${ad.color}">${ad.company}</div>
+      <div class="ad-sub" style="color:${ad.color}">${ad.tagline}</div>
+      <div class="ad-cta" style="color:${ad.color}">${ad.cta} →</div>
+    </div>
+  </div>`).join('')}
+</div>
+
+<div class="card" style="background:linear-gradient(135deg,var(--g800),var(--g600));border:none;text-align:center">
+  <div style="font-size:24px;margin-bottom:8px">📢</div>
+  <div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px">Advertise Your Agri-Business</div>
+  <div style="font-size:13px;color:rgba(255,255,255,.75);margin-bottom:16px">Reach thousands of active Kenyan farmers. Controlled, relevant, and non-intrusive ads only.</div>
+  <button class="btn" style="background:rgba(255,255,255,.15);color:var(--white);border:1px solid rgba(255,255,255,.3);justify-content:center" onclick="showToast('Advertiser enquiry form coming soon!')">Enquire About Advertising</button>
+</div>`
+}
+
+// ─────────────────────────────────────────────────
+//  GRANTS / SUBSIDIES
+// ─────────────────────────────────────────────────
+function pgGrants(){
+  return `
+<div class="section-header mb-2">
+  <div><div class="section-title" style="font-size:20px">${t('nav.grants')}</div><div class="section-sub">Official announcements from government and NGOs</div></div>
+</div>
+<p class="text-xs text-gray mb-6">All listings are verified from official sources. AgriMateKE is not affiliated with any of these programs.</p>
+${DB.grants.map(g=>`
+  <div class="grant-card">
+    <span class="grant-tag badge ${g.tagColor}">${g.tag}</span>
+    <div class="grant-title">${g.title}</div>
+    <div class="grant-body">${g.body}</div>
+    <div class="grant-deadline">⏰ ${g.deadline}</div>
+    <button class="btn btn-outline btn-sm mt-3" onclick="showToast('Opening official application...')">Apply / Learn More →</button>
+  </div>`).join('')}`
+}
+
+// ─────────────────────────────────────────────────
+//  SETTINGS
+// ─────────────────────────────────────────────────
+function pgSettings(){
+  const isPro=DB.user.plan==='pro'
+  return `
+<div class="grid-2">
+  <div>
+    <div class="card mb-4">
+      <div class="section-title mb-4">👤 Your Profile</div>
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="s-name" value="${DB.user.name}" placeholder="Your full name"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">County</label><input class="form-input" id="s-county" value="${DB.user.county}" placeholder="Your county"/></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="s-phone" value="${DB.user.phone||''}" placeholder="0712345678"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Farm Name</label><input class="form-input" id="s-farm" value="${DB.user.farm}" placeholder="Farm name"/></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="s-email" value="${DB.user.email}" placeholder="email@example.com"/></div>
+      <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+    </div>
+    <div class="card">
+      <div class="section-title mb-4">🌍 Language</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn ${LANG==='en'?'btn-primary':'btn-outline'}" onclick="LANG='en';render()">🇬🇧 English</button>
+        <button class="btn ${LANG==='sw'?'btn-primary':'btn-outline'}" onclick="LANG='sw';render()">🇰🇪 Kiswahili</button>
+      </div>
+    </div>
+  </div>
+  <div>
+    ${!isPro?`
+    <div class="pro-card mb-4">
+      <div style="font-size:11px;opacity:.6;text-transform:uppercase;letter-spacing:.08em">Upgrade</div>
+      <div style="font-size:28px;font-weight:700;color:var(--white);margin-top:4px">⭐ Mkulima Pro</div>
+      <div style="font-size:24px;font-weight:300;color:var(--g300);margin-top:4px">KSh 500<span style="font-size:14px;opacity:.7">/month</span></div>
+      ${['All 5 modules fully unlocked','SMS alerts for vaccinations & weather','M-Pesa payment tracking','Priority Shamba Bot answers','Full data export (PDF & Excel)','Offline sync for all features','Community farmer forum'].map(f=>`<div class="pro-feature">✅ ${f}</div>`).join('')}
+      <div style="margin-top:16px">
+        <div class="plan-option ${SELECTED_PLAN==='monthly'?'selected':''}" onclick="SELECTED_PLAN='monthly';document.querySelectorAll('.plan-option').forEach(e=>e.classList.remove('selected'));this.classList.add('selected')">
+          <div style="font-weight:600">Monthly · KSh 500/mo</div><div class="text-xs text-gray">Billed monthly · Cancel anytime</div>
+        </div>
+        <div class="plan-option ${SELECTED_PLAN==='annual'?'selected':''}" onclick="SELECTED_PLAN='annual';document.querySelectorAll('.plan-option').forEach(e=>e.classList.remove('selected'));this.classList.add('selected')" style="position:relative">
+          <span style="position:absolute;top:-10px;right:10px;background:var(--g400);color:var(--white);font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--r-full)">SAVE 25%</span>
+          <div style="font-weight:600">Annual · KSh 4,500/yr</div><div class="text-xs text-gray">Only KSh 375/month</div>
+        </div>
+        <button class="btn btn-primary w-full mt-3" style="justify-content:center;background:linear-gradient(135deg,var(--g800),var(--g500))" onclick="upgradePro()">Pay with M-Pesa →</button>
+        <p style="font-size:11px;color:rgba(255,255,255,.5);text-align:center;margin-top:8px">Secure · No hidden fees · Cancel anytime</p>
+      </div>
+    </div>`:`
+    <div class="card mb-4" style="background:var(--g50);border-color:var(--g200)">
+      <div style="text-align:center;padding:10px 0">
+        <div style="font-size:36px;margin-bottom:8px">⭐</div>
+        <div style="font-size:18px;font-weight:700;color:var(--g800)">Mkulima Pro — Active</div>
+        <div style="font-size:13px;color:var(--g600);margin-top:4px">All features unlocked. Renews monthly.</div>
+        <div class="badge badge-green mt-3" style="font-size:12px">Pro Member</div>
+      </div>
+    </div>`}
+    <div class="card">
+      <div class="section-title mb-3">🔔 About AgriMateKE</div>
+      <div class="text-sm text-gray" style="line-height:1.7">Version 3.0 · Built for Kenyan farmers<br>Mission: Empower every farmer with accessible digital tools.<br><br>© 2026 AgriMateKE · Made with 🌱 in Kenya</div>
+      <button class="btn btn-danger w-full mt-4" style="justify-content:center" onclick="AUTH=false;PAGE='auth';render()">Sign Out</button>
+    </div>
+  </div>
+</div>`
+}
+
+// ─────────────────────────────────────────────────
+//  MODALS
+// ─────────────────────────────────────────────────
+function openModal(name){MODAL=name;render()}
+function closeModal(){MODAL=null;render()}
+
+function modalWrap(title,icon,body){
+  return `
+<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        ${icon?`<div class="modal-icon">${icon}</div>`:''}
+        <div class="modal-title">${title}</div>
+      </div>
+      <button class="btn-icon" onclick="closeModal()">${ic('x',16)}</button>
+    </div>
+    ${body}
+  </div>
+</div>`
+}
+
+function renderModal(){
+  const M={
+    add_crop:()=>modalWrap('Add Crop','🌿',`
+      <div class="form-group"><label class="form-label">Crop Name *</label><input class="form-input" id="c-name" placeholder="e.g. Maize, Tomatoes, Kales"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Variety</label><input class="form-input" id="c-var" placeholder="e.g. H614D"/></div>
+        <div class="form-group"><label class="form-label">Plot Size (acres)</label><input class="form-input" type="number" id="c-acres" step="0.1" placeholder="1.5"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Planted On</label><input class="form-input" type="date" id="c-planted"/></div>
+        <div class="form-group"><label class="form-label">Expected Harvest</label><input class="form-input" type="date" id="c-harvest"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Growth Stage</label>
+        <select class="form-select" id="c-stage">${['seedling','vegetative','flowering','fruiting','ready','harvested'].map(s=>`<option value="${s}">${s}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label class="form-label">Notes (optional)</label><input class="form-input" id="c-notes" placeholder="Any notes about this crop..."/></div>
+      <div class="flex gap-2 justify-between mt-2">
+        <button class="btn btn-outline" onclick="closeModal()">${t('common.cancel')}</button>
+        <button class="btn btn-primary" onclick="saveCrop()">${t('common.save')} Crop</button>
+      </div>`),
+
+    add_livestock:()=>modalWrap('Add Livestock Group','🐄',`
+      <div class="form-group"><label class="form-label">Type</label>
+        <select class="form-select" id="l-type" onchange="document.getElementById('l-emoji').value=this.options[this.selectedIndex].dataset.emoji">
+          <option value="Layers" data-emoji="🐔">🐔 Layers (Hens)</option>
+          <option value="Broilers" data-emoji="🐓">🐓 Broilers</option>
+          <option value="Dairy" data-emoji="🐄">🐄 Dairy Cattle</option>
+          <option value="Goats" data-emoji="🐐">🐐 Goats</option>
+          <option value="Pigs" data-emoji="🐷">🐷 Pigs</option>
+        </select>
+        <input type="hidden" id="l-emoji" value="🐔"/>
+      </div>
+      <div class="form-group"><label class="form-label">Group Name</label><input class="form-input" id="l-name" placeholder="e.g. Layer Flock B"/></div>
+      <div class="form-group"><label class="form-label">Number of Animals</label><input class="form-input" type="number" id="l-count" placeholder="100"/></div>
+      <div class="form-group"><label class="form-label">Notes (optional)</label><input class="form-input" id="l-notes" placeholder="Breed, age, etc."/></div>
+      <div class="flex gap-2 justify-between mt-2">
+        <button class="btn btn-outline" onclick="closeModal()">${t('common.cancel')}</button>
+        <button class="btn btn-primary" onclick="saveLivestock()">${t('common.save')}</button>
+      </div>`),
+
+    add_record:()=>modalWrap('Record Daily Production','📋',`
+      <div class="form-group"><label class="form-label">Livestock Group</label>
+        <select class="form-select" id="r-grp">${DB.livestock.map(g=>`<option value="${g.id}">${g.emoji} ${g.name}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label class="form-label">Record Type</label>
+        <select class="form-select" id="r-type"><option value="eggs">🥚 Eggs collected</option><option value="milk">🥛 Milk (litres)</option><option value="feed">🌾 Feed given (kg)</option><option value="mortality">💀 Mortality</option><option value="vaccination">💉 Vaccination</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Quantity</label><input class="form-input" type="number" id="r-qty" placeholder="0"/></div>
+      <div class="form-group"><label class="form-label">Cost (KSh, if any)</label><input class="form-input" type="number" id="r-cost" placeholder="0"/></div>
+      <div class="flex gap-2 justify-between mt-2">
+        <button class="btn btn-outline" onclick="closeModal()">${t('common.cancel')}</button>
+        <button class="btn btn-primary" onclick="saveRecord()">${t('common.save')}</button>
+      </div>`),
+
+    add_sale:()=>modalWrap('Record Sale','💰',`
+      <div class="form-group"><label class="form-label">Item Sold *</label><input class="form-input" id="s-item" placeholder="e.g. Maize 90kg, Eggs (30 trays)"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Quantity</label><input class="form-input" type="number" id="s-qty" placeholder="0" oninput="calcSaleTotal()"/></div>
+        <div class="form-group"><label class="form-label">Unit Price (KSh)</label><input class="form-input" type="number" id="s-price" placeholder="0" oninput="calcSaleTotal()"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Total (KSh) *</label><input class="form-input" type="number" id="s-total" placeholder="Auto-calculated or enter manually"/></div>
+      <div class="form-group"><label class="form-label">Buyer (optional)</label><input class="form-input" id="s-buyer" placeholder="e.g. Naivas, Brookside Dairy"/></div>
+      <div class="flex gap-2 justify-between mt-2">
+        <button class="btn btn-outline" onclick="closeModal()">${t('common.cancel')}</button>
+        <button class="btn btn-primary" onclick="saveSale()">${t('common.save')}</button>
+      </div>`),
+
+    add_expense:()=>modalWrap('Add Expense','📋',`
+      <div class="form-group"><label class="form-label">Category</label>
+        <select class="form-select" id="e-cat"><option value="feed">Animal Feed</option><option value="fertilizer">Fertilizer</option><option value="seeds">Seeds</option><option value="labour">Labour</option><option value="vet">Vet Services</option><option value="pesticide">Pesticides</option><option value="equipment">Equipment</option><option value="transport">Transport</option><option value="other">Other</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="e-desc" placeholder="e.g. Layer mash - 10 bags"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Amount (KSh) *</label><input class="form-input" type="number" id="e-amt" placeholder="0"/></div>
+        <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date" id="e-date" value="${today()}"/></div>
+      </div>
+      <div class="flex gap-2 justify-between mt-2">
+        <button class="btn btn-outline" onclick="closeModal()">${t('common.cancel')}</button>
+        <button class="btn btn-primary" onclick="saveExpense()">${t('common.save')}</button>
+      </div>`),
+
+    add_task:()=>modalWrap('Add Task','✅',`
+      <div class="form-group"><label class="form-label">Task Title *</label><input class="form-input" id="tk-title" placeholder="e.g. Vaccinate layers, Apply fertilizer"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Due Date</label><input class="form-input" type="date" id="tk-due" value="${today()}"/></div>
+        <div class="form-group"><label class="form-label">Priority</label>
+          <select class="form-select" id="tk-prio"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
+        </div>
+      </div>
+      <div class="flex gap-2 justify-between mt-2">
+        <button class="btn btn-outline" onclick="closeModal()">${t('common.cancel')}</button>
+        <button class="btn btn-primary" onclick="saveTask()">${t('common.save')}</button>
+      </div>`),
+
+    request_visit:()=>modalWrap('Request Farm Visit','🚜',`
+      <div class="form-group"><label class="form-label">Select Vet</label>
+        <select class="form-select" id="rv-vet">${DB.vets.map(v=>`<option value="${v.id}">${v.emoji} ${v.name} — ${v.spec}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label class="form-label">Issue / Reason for Visit *</label><input class="form-input" id="rv-reason" placeholder="e.g. Sick chickens, Low milk production"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Preferred Date</label><input class="form-input" type="date" id="rv-date" value="${today()}"/></div>
+        <div class="form-group"><label class="form-label">Your Phone</label><input class="form-input" type="tel" id="rv-phone" value="${DB.user.phone||''}" placeholder="0712345678"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Your Location / Directions</label><input class="form-input" id="rv-loc" placeholder="e.g. Rongai, near Tumaini Church"/></div>
+      <div class="flex gap-2 justify-between mt-2">
+        <button class="btn btn-outline" onclick="closeModal()">${t('common.cancel')}</button>
+        <button class="btn btn-primary" onclick="showToast('Visit request sent! Vet will contact you within 24hrs. 🐄');closeModal()">Send Request</button>
+      </div>`),
+
+    vet_register:()=>modalWrap('Apply to Join as Vet','🏥',`
+      <div style="background:var(--g50);border:1px solid var(--g200);border-radius:var(--r-sm);padding:12px;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--g700);line-height:1.5">✅ Submit your credentials below. Our admin team reviews all applications within <strong>48 hours</strong>. Approved vets are listed publicly with their contact information.</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="vr-name" placeholder="Dr. Full Name"/></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="vr-phone" placeholder="0712345678"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Specialization *</label><input class="form-input" id="vr-spec" placeholder="e.g. Dairy Specialist, Poultry Expert"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">County of Practice</label><input class="form-input" id="vr-county" placeholder="e.g. Nairobi"/></div>
+        <div class="form-group"><label class="form-label">KVB License No.</label><input class="form-input" id="vr-lic" placeholder="KVB-XXXX"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email *</label><input class="form-input" type="email" id="vr-email" placeholder="vet@example.com"/></div>
+      <div class="form-hint">💡 We will verify your KVB license before approval. Your profile will only go live after admin review.</div>
+      <div class="flex gap-2 justify-between mt-3">
+        <button class="btn btn-outline" onclick="closeModal()">${t('common.cancel')}</button>
+        <button class="btn btn-primary" onclick="showToast('Application submitted! We will review within 48hrs.');closeModal()">Submit Application</button>
+      </div>`),
+  }
+  const fn=M[MODAL]
+  return fn?fn():''
+}
+
+// ─────────────────────────────────────────────────
+//  AUTH
+// ─────────────────────────────────────────────────
+function renderAuth(){
+  return `
+<div class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <h1>🌱 AgriMateKE</h1>
+      <p>${t('auth.tagline')}</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab ${AUTH_MODE==='login'?'active':''}" onclick="AUTH_MODE='login';render()">${t('auth.login')}</button>
+      <button class="auth-tab ${AUTH_MODE==='register'?'active':''}" onclick="AUTH_MODE='register';render()">${t('auth.register')}</button>
+    </div>
+    <div id="auth-form">
+      ${AUTH_MODE==='login'?`
+        <div class="form-group"><label class="form-label">${t('auth.email')}</label><input class="form-input" id="a-email" type="email" placeholder="you@example.com"/></div>
+        <div class="form-group"><label class="form-label">${t('auth.password')}</label><input class="form-input" id="a-pass" type="password" placeholder="••••••••"/></div>
+        <button class="btn btn-primary w-full" style="justify-content:center" onclick="doLogin()">${t('auth.login')}</button>
+      `:`
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">${t('auth.name')}</label><input class="form-input" id="r-name" placeholder="James Kamau"/></div>
+          <div class="form-group"><label class="form-label">${t('auth.county')}</label><input class="form-input" id="r-county" placeholder="Kiambu"/></div>
+        </div>
+        <div class="form-group"><label class="form-label">${t('auth.farm')}</label><input class="form-input" id="r-farm" placeholder="e.g. Kamau's Farm"/></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">${t('auth.phone')}</label><input class="form-input" id="r-phone" type="tel" placeholder="0712345678"/></div>
+          <div class="form-group"><label class="form-label">${t('auth.email')}</label><input class="form-input" id="r-email" type="email" placeholder="you@example.com"/></div>
+        </div>
+        <div class="form-group"><label class="form-label">${t('auth.password')}</label><input class="form-input" id="r-pass" type="password" placeholder="Minimum 8 characters"/></div>
+        <button class="btn btn-primary w-full" style="justify-content:center" onclick="doRegister()">${t('auth.register')}</button>
+      `}
+    </div>
+    <div style="margin-top:14px;text-align:center">
+      <button class="btn btn-outline w-full" style="justify-content:center" onclick="doDemo()">${t('auth.demo')} →</button>
+    </div>
+    <div style="text-align:center;margin-top:14px">
+      <button onclick="LANG=LANG==='en'?'sw':'en';render()" class="btn btn-ghost btn-sm">
+        ${LANG==='en'?'🇰🇪 Badili Kiswahili':'🇬🇧 Switch to English'}
+      </button>
+    </div>
+  </div>
+</div>`
+}
+
+// ─────────────────────────────────────────────────
+//  AUTH ACTIONS
+// ─────────────────────────────────────────────────
+function doLogin(){
+  const email=document.getElementById('a-email')?.value.trim()
+  const pass=document.getElementById('a-pass')?.value
+  if(!email||!pass){showToast('Please fill in all fields','error');return}
+  // In production: Supabase auth.signInWithPassword({email,password})
+  DB.user={name:email.split('@')[0],county:'Nairobi',farm:`${email.split('@')[0]}'s Farm`,email,phone:'',plan:'free'}
+  AUTH=true;PAGE='dashboard';render()
+  showToast(`Welcome back! 👋`)
+}
+
+function doRegister(){
+  const name=document.getElementById('r-name')?.value.trim()
+  const county=document.getElementById('r-county')?.value.trim()
+  const farm=document.getElementById('r-farm')?.value.trim()
+  const phone=document.getElementById('r-phone')?.value.trim()
+  const email=document.getElementById('r-email')?.value.trim()
+  if(!name||!email){showToast('Name and email are required','error');return}
+  // In production: Supabase auth.signUp + insert into profiles + farms
+  DB.user={name,county:county||'Kenya',farm:farm||`${name}'s Farm`,email,phone:phone||'',plan:'free'}
+  AUTH=true;PAGE='dashboard';render()
+  showToast(`Welcome to AgriMateKE, ${name}! 🌱`)
+}
+
+function doDemo(){
+  DB.user={name:'John Kipchoge',county:'Rongai',farm:"Kipchoge's Farm",email:'demo@agrimateke.ke',phone:'0700000000',plan:'free'}
+  AUTH=true;PAGE='dashboard';render()
+  showToast('Demo loaded — explore all features! 🌾')
+}
+
+// ─────────────────────────────────────────────────
+//  DATA ACTIONS
+// ─────────────────────────────────────────────────
+function calcSaleTotal(){
+  const q=parseFloat(document.getElementById('s-qty')?.value)||0
+  const p=parseFloat(document.getElementById('s-price')?.value)||0
+  const el=document.getElementById('s-total');if(el&&q&&p)el.value=q*p
+}
+
+function saveCrop(){
+  const name=document.getElementById('c-name')?.value.trim()
+  if(!name){showToast('Crop name is required','error');return}
+  DB.crops.push({id:nid(),name,variety:document.getElementById('c-var')?.value||'',acres:parseFloat(document.getElementById('c-acres')?.value)||0,planted:document.getElementById('c-planted')?.value||'',harvest:document.getElementById('c-harvest')?.value||'',stage:document.getElementById('c-stage')?.value||'seedling',notes:document.getElementById('c-notes')?.value||''})
+  DB.activity.unshift({icon:'🌿',text:`Added crop: ${name}`,time:'just now'})
+  closeModal();showToast(`${name} added! 🌿`);navigate('crops')
+}
+
+function updateCropStage(id,stage){
+  const c=DB.crops.find(x=>x.id===id);if(c){c.stage=stage;showToast('Stage updated! ✓');render()}
+}
+
+function deleteCrop(id){
+  if(!confirm('Remove this crop?'))return
+  const c=DB.crops.find(x=>x.id===id)
+  DB.crops=DB.crops.filter(x=>x.id!==id);showToast(`${c?.name||'Crop'} removed`);render()
+}
+
+function saveLivestock(){
+  const name=document.getElementById('l-name')?.value.trim()
+  if(!name){showToast('Group name required','error');return}
+  const emojiEl=document.getElementById('l-emoji')
+  DB.livestock.push({id:nid(),emoji:emojiEl?.value||'🐔',name,type:document.getElementById('l-type')?.value||'Layers',count:parseInt(document.getElementById('l-count')?.value)||0,eggs:0,milk:0,notes:document.getElementById('l-notes')?.value||''})
+  closeModal();showToast('Group added! 🐄');navigate('livestock')
+}
+
+function saveRecord(){
+  const gid=parseInt(document.getElementById('r-grp')?.value)
+  const g=DB.livestock.find(x=>x.id===gid);if(!g)return
+  const type=document.getElementById('r-type')?.value
+  const qty=parseFloat(document.getElementById('r-qty')?.value)||0
+  if(type==='eggs')g.eggs=qty
+  if(type==='milk')g.milk=qty
+  DB.activity.unshift({icon:'📋',text:`Recorded ${type}: ${qty} — ${g.name}`,time:'just now'})
+  closeModal();showToast('Production recorded! ✓');navigate('livestock')
+}
+
+function saveSale(){
+  const item=document.getElementById('s-item')?.value.trim()
+  const total=parseFloat(document.getElementById('s-total')?.value)||0
+  if(!item||!total){showToast('Item and total are required','error');return}
+  DB.sales.unshift({id:nid(),item,total,buyer:document.getElementById('s-buyer')?.value||'',date:today(),cat:'other'})
+  DB.activity.unshift({icon:'💰',text:`Recorded sale: ${item} — ${fmt(total)}`,time:'just now'})
+  closeModal();showToast('Sale recorded! 💰');navigate('sales')
+}
+
+function saveExpense(){
+  const amt=parseFloat(document.getElementById('e-amt')?.value)
+  if(!amt){showToast('Enter an amount','error');return}
+  DB.expenses.unshift({id:nid(),desc:document.getElementById('e-desc')?.value||'Expense',cat:document.getElementById('e-cat')?.value,amount:amt,date:document.getElementById('e-date')?.value||today()})
+  DB.activity.unshift({icon:'📋',text:`Added expense: ${document.getElementById('e-desc')?.value||'Expense'} — ${fmt(amt)}`,time:'just now'})
+  closeModal();showToast('Expense recorded!');navigate('sales')
+}
+
+function saveTask(){
+  const title=document.getElementById('tk-title')?.value.trim()
+  if(!title){showToast('Task title required','error');return}
+  DB.tasks.unshift({id:nid(),title,due:document.getElementById('tk-due')?.value||today(),priority:document.getElementById('tk-prio')?.value||'medium',done:false})
+  closeModal();showToast('Task added! ✅')
+  render()
+}
+
+function completeTask(id){
+  const task=DB.tasks.find(x=>x.id===id)
+  if(task&&!task.done){task.done=true;DB.activity.unshift({icon:'✅',text:`Completed: ${task.title}`,time:'just now'});showToast('Task completed! ✓');render()}
+}
+
+function deleteTask(id){
+  DB.tasks=DB.tasks.filter(x=>x.id!==id);showToast('Task removed');render()
+}
+
+function saveProfile(){
+  const name=document.getElementById('s-name')?.value.trim()
+  const county=document.getElementById('s-county')?.value.trim()
+  const farm=document.getElementById('s-farm')?.value.trim()
+  const phone=document.getElementById('s-phone')?.value.trim()
+  const email=document.getElementById('s-email')?.value.trim()
+  if(name)DB.user.name=name
+  if(county)DB.user.county=county
+  if(farm)DB.user.farm=farm
+  if(phone)DB.user.phone=phone
+  if(email)DB.user.email=email
+  // In production: supabase.from('profiles').update({...}).eq('id',user.id)
+  showToast('Profile saved! ✓');render()
+}
+
+function upgradePro(){
+  showToast('Opening M-Pesa payment...')
+  setTimeout(()=>{
+    DB.user.plan='pro'
+    showToast('🎉 Welcome to Mkulima Pro! All features unlocked.')
+    render()
+  },1600)
+}
+
+// ─────────────────────────────────────────────────
+//  AFTER RENDER
+// ─────────────────────────────────────────────────
+function afterRender(){
+  scrollChat()
+}
+
+// ─────────────────────────────────────────────────
+//  GO
+// ─────────────────────────────────────────────────
+render()
+</script>
+</body>
+</html>
