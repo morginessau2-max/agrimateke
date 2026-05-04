@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AgriMateKE — Farmer Feedback</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g900:#1b5e20;--g700:#2e7d32;--g500:#4caf50;--g300:#a5d6a7;--g50:#f1f8f1;
+  --amber:#f59e0b;--white:#fff;--gray50:#f9fafb;--gray200:#e5e7eb;--gray500:#6b7280;--gray900:#111827;
+  --font:'Outfit',sans-serif;--font-head:'DM Serif Display',serif;
+}
+html,body{min-height:100%;font-family:var(--font);background:var(--gray50);color:var(--gray900)}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--g900) 0%,var(--g700) 60%,#43a047 100%);padding:48px 24px 64px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'🌱';position:absolute;font-size:200px;opacity:.04;top:-40px;right:-40px;line-height:1}
+.hero-logo{font-family:var(--font-head);font-size:28px;color:var(--white);margin-bottom:4px}
+.hero-title{font-size:22px;font-weight:700;color:var(--white);margin-top:16px;line-height:1.3}
+.hero-sub{font-size:14px;color:rgba(255,255,255,.7);margin-top:8px;line-height:1.6;max-width:360px;margin-inline:auto}
+
+/* Card */
+.form-card{background:var(--white);border-radius:24px 24px 0 0;margin-top:-24px;padding:32px 24px 48px;max-width:600px;margin-inline:auto;position:relative;box-shadow:0 -4px 24px rgba(0,0,0,.08)}
+
+/* Steps */
+.step{display:none}
+.step.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.step-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g700);margin-bottom:4px}
+.step-title{font-size:20px;font-weight:700;color:var(--gray900);margin-bottom:6px;font-family:var(--font-head)}
+.step-sub{font-size:13px;color:var(--gray500);margin-bottom:24px;line-height:1.6}
+
+/* Progress */
+.progress-wrap{display:flex;align-items:center;gap:8px;margin-bottom:28px}
+.progress-dot{width:8px;height:8px;border-radius:50%;background:var(--gray200);transition:all .3s}
+.progress-dot.done{background:var(--g500)}
+.progress-dot.active{background:var(--g700);width:24px;border-radius:4px}
+.progress-line{flex:1;height:2px;background:var(--gray200)}
+
+/* Form elements */
+.form-group{margin-bottom:18px}
+.form-label{font-size:13px;font-weight:600;color:var(--gray900);margin-bottom:6px;display:block}
+.form-input{width:100%;padding:12px 14px;border:1.5px solid var(--gray200);border-radius:10px;font-family:var(--font);font-size:14px;color:var(--gray900);outline:none;transition:border .15s;background:var(--white)}
+.form-input:focus{border-color:var(--g500);box-shadow:0 0 0 3px rgba(76,175,80,.1)}
+.form-select{width:100%;padding:12px 14px;border:1.5px solid var(--gray200);border-radius:10px;font-family:var(--font);font-size:14px;color:var(--gray900);outline:none;background:var(--white);cursor:pointer}
+.form-select:focus{border-color:var(--g500)}
+textarea.form-input{resize:vertical;min-height:90px}
+
+/* Rating */
+.rating-wrap{display:flex;gap:8px;margin-top:4px}
+.rating-btn{flex:1;padding:12px 6px;border:1.5px solid var(--gray200);border-radius:10px;background:var(--white);cursor:pointer;text-align:center;transition:all .15s;font-family:var(--font)}
+.rating-btn:hover{border-color:var(--g300);background:var(--g50)}
+.rating-btn.selected{border-color:var(--g500);background:var(--g50);font-weight:700;color:var(--g700)}
+.rating-emoji{font-size:22px;display:block;margin-bottom:4px}
+.rating-label{font-size:10px;color:var(--gray500);font-weight:600}
+
+/* Choice chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chip{padding:8px 14px;border:1.5px solid var(--gray200);border-radius:99px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;background:var(--white);color:var(--gray900)}
+.chip:hover{border-color:var(--g300);background:var(--g50)}
+.chip.selected{border-color:var(--g500);background:var(--g50);color:var(--g700);font-weight:700}
+
+/* Yes/No */
+.yn-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.yn-btn{padding:14px;border:1.5px solid var(--gray200);border-radius:10px;background:var(--white);cursor:pointer;text-align:center;font-family:var(--font);font-size:14px;font-weight:600;transition:all .15s}
+.yn-btn:hover{border-color:var(--g300);background:var(--g50)}
+.yn-btn.selected{border-color:var(--g500);background:var(--g50);color:var(--g700)}
+
+/* Buttons */
+.btn-next{width:100%;padding:14px;background:var(--g700);color:var(--white);border:none;border-radius:10px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;transition:all .15s}
+.btn-next:hover{background:var(--g900);transform:translateY(-1px)}
+.btn-back{background:none;border:none;font-family:var(--font);font-size:13px;color:var(--gray500);cursor:pointer;margin-top:12px;display:block;margin-inline:auto}
+.btn-back:hover{color:var(--gray900)}
+
+/* Success */
+.success{text-align:center;padding:40px 16px}
+.success-icon{font-size:64px;margin-bottom:16px;animation:bounce .5s ease}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.success-title{font-family:var(--font-head);font-size:26px;color:var(--g900);margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--gray500);line-height:1.6;max-width:300px;margin-inline:auto}
+.success-share{margin-top:24px;background:var(--g50);border:1px solid var(--g300);border-radius:12px;padding:16px;text-align:center}
+.success-share p{font-size:13px;color:var(--g700);font-weight:600;margin-bottom:8px}
+.share-link{font-size:12px;color:var(--g700);background:var(--white);border:1px solid var(--g300);border-radius:8px;padding:8px 12px;display:block;word-break:break-all}
+
+/* Divider */
+.divider{height:1px;background:var(--gray200);margin:20px 0}
+.required{color:#ef4444;margin-left:2px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-logo">🌱 AgriMateKE</div>
+  <div class="hero-title">Help us build the app you deserve</div>
+  <div class="hero-sub">5 minutes of your time will help us make AgriMateKE better for every Kenyan farmer.</div>
+</div>
+
+<div class="form-card">
+  <!-- Progress dots -->
+  <div class="progress-wrap">
+    <div class="progress-dot active" id="dot-1"></div>
+    <div class="progress-line"></div>
+    <div class="progress-dot" id="dot-2"></div>
+    <div class="progress-line"></div>
+    <div class="progress-dot" id="dot-3"></div>
+    <div class="progress-line"></div>
+    <div class="progress-dot" id="dot-4"></div>
+    <div class="progress-line"></div>
+    <div class="progress-dot" id="dot-5"></div>
+  </div>
+
+  <!-- STEP 1: About you -->
+  <div class="step active" id="step-1">
+    <div class="step-label">Step 1 of 5</div>
+    <div class="step-title">About You</div>
+    <div class="step-sub">Let us know a little about yourself so we can understand who we're building for.</div>
+
+    <div class="form-group">
+      <label class="form-label">Your Name <span class="required">*</span></label>
+      <input class="form-input" id="f-name" placeholder="e.g. James Kamau"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Your County <span class="required">*</span></label>
+      <select class="form-select" id="f-county">
+        <option value="">Select your county...</option>
+        ${['Nairobi','Kiambu','Nakuru','Meru','Kisumu','Machakos','Kakamega','Uasin Gishu','Trans Nzoia','Nyandarua','Nyeri','Kirinyaga','Murang\'a','Embu','Tharaka Nithi','Laikipia','Samburu','Isiolo','Marsabit','Turkana','West Pokot','Elgeyo Marakwet','Nandi','Baringo','Kericho','Bomet','Narok','Kajiado','Makueni','Kitui','Mombasa','Kwale','Kilifi','Tana River','Lamu','Taita Taveta','Garissa','Wajir','Mandera','Siaya','Homa Bay','Migori','Kisii','Nyamira','Busia','Bungoma','Vihiga'].map(c=>`<option value="${c}">${c}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">What do you mainly farm?</label>
+      <div class="chips" id="farm-type">
+        ${['🌽 Crops','🐔 Poultry','🐄 Dairy','🐐 Livestock','🥦 Vegetables','🍎 Fruits','All of the above'].map(o=>`<button class="chip" onclick="toggleChip(this,'farm-type')">${o}</button>`).join('')}
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">How long have you been farming?</label>
+      <select class="form-select" id="f-exp">
+        <option value="">Select...</option>
+        <option>Less than 1 year</option>
+        <option>1–3 years</option>
+        <option>3–5 years</option>
+        <option>5–10 years</option>
+        <option>More than 10 years</option>
+      </select>
+    </div>
+    <button class="btn-next" onclick="nextStep(1)">Continue →</button>
+  </div>
+
+  <!-- STEP 2: First impressions -->
+  <div class="step" id="step-2">
+    <div class="step-label">Step 2 of 5</div>
+    <div class="step-title">First Impressions</div>
+    <div class="step-sub">We want to know your honest reaction to AgriMateKE.</div>
+
+    <div class="form-group">
+      <label class="form-label">How would you rate AgriMateKE overall? <span class="required">*</span></label>
+      <div class="rating-wrap" id="rating-overall">
+        <button class="rating-btn" onclick="selectRating('rating-overall',this,'1')"><span class="rating-emoji">😞</span><span class="rating-label">Poor</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-overall',this,'2')"><span class="rating-emoji">😐</span><span class="rating-label">Fair</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-overall',this,'3')"><span class="rating-emoji">🙂</span><span class="rating-label">Good</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-overall',this,'4')"><span class="rating-emoji">😊</span><span class="rating-label">Great</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-overall',this,'5')"><span class="rating-emoji">🤩</span><span class="rating-label">Amazing</span></button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">How easy was it to use the app?</label>
+      <div class="rating-wrap" id="rating-ease">
+        <button class="rating-btn" onclick="selectRating('rating-ease',this,'1')"><span class="rating-emoji">😤</span><span class="rating-label">Very Hard</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-ease',this,'2')"><span class="rating-emoji">😕</span><span class="rating-label">Hard</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-ease',this,'3')"><span class="rating-emoji">🙂</span><span class="rating-label">OK</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-ease',this,'4')"><span class="rating-emoji">😊</span><span class="rating-label">Easy</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-ease',this,'5')"><span class="rating-emoji">⚡</span><span class="rating-label">Very Easy</span></button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">What was your first reaction when you opened the app?</label>
+      <textarea class="form-input" id="f-reaction" placeholder="Tell us what you thought when you first saw it..."></textarea>
+    </div>
+
+    <button class="btn-next" onclick="nextStep(2)">Continue →</button>
+    <button class="btn-back" onclick="prevStep(2)">← Back</button>
+  </div>
+
+  <!-- STEP 3: Features -->
+  <div class="step" id="step-3">
+    <div class="step-label">Step 3 of 5</div>
+    <div class="step-title">Features</div>
+    <div class="step-sub">Tell us which features matter most to you.</div>
+
+    <div class="form-group">
+      <label class="form-label">Which features did you find most useful? <span class="required">*</span></label>
+      <div class="chips" id="useful-features">
+        ${['Dashboard','Crop Tracking','Livestock Records','Sales & Expenses','Weather Forecast','Market Prices','Shamba Bot (AI)','Vet Directory','Govt Grants Board','Tasks & Reminders'].map(f=>`<button class="chip" onclick="toggleChip(this,'useful-features')">${f}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Which features were confusing or hard to use?</label>
+      <div class="chips" id="confusing-features">
+        ${['Dashboard','Crop Tracking','Livestock Records','Sales & Expenses','Weather','Market Prices','Shamba Bot','Vet Directory','Grants Board','Tasks','Nothing was confusing'].map(f=>`<button class="chip" onclick="toggleChip(this,'confusing-features')">${f}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Is there a feature you wished was in the app but wasn't there?</label>
+      <textarea class="form-input" id="f-missing" placeholder="e.g. I wanted to be able to track my farm workers' salaries..."></textarea>
+    </div>
+
+    <button class="btn-next" onclick="nextStep(3)">Continue →</button>
+    <button class="btn-back" onclick="prevStep(3)">← Back</button>
+  </div>
+
+  <!-- STEP 4: Shamba Bot & Language -->
+  <div class="step" id="step-4">
+    <div class="step-label">Step 4 of 5</div>
+    <div class="step-title">Shamba Bot & Language</div>
+    <div class="step-sub">We want to make sure our AI assistant and language options work for you.</div>
+
+    <div class="form-group">
+      <label class="form-label">Did you try Shamba Bot (the AI assistant)?</label>
+      <div class="yn-wrap" id="tried-bot">
+        <button class="yn-btn" onclick="selectYN('tried-bot',this,'yes')">✅ Yes, I tried it</button>
+        <button class="yn-btn" onclick="selectYN('tried-bot',this,'no')">❌ No, I didn't</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">How helpful was Shamba Bot?</label>
+      <div class="rating-wrap" id="rating-bot">
+        <button class="rating-btn" onclick="selectRating('rating-bot',this,'1')"><span class="rating-emoji">👎</span><span class="rating-label">Not helpful</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-bot',this,'2')"><span class="rating-emoji">😐</span><span class="rating-label">A little</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-bot',this,'3')"><span class="rating-emoji">🙂</span><span class="rating-label">Helpful</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-bot',this,'4')"><span class="rating-emoji">😊</span><span class="rating-label">Very helpful</span></button>
+        <button class="rating-btn" onclick="selectRating('rating-bot',this,'5')"><span class="rating-emoji">🤩</span><span class="rating-label">Excellent</span></button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Which language do you prefer using the app in?</label>
+      <div class="yn-wrap" id="lang-pref">
+        <button class="yn-btn" onclick="selectYN('lang-pref',this,'english')">🇬🇧 English</button>
+        <button class="yn-btn" onclick="selectYN('lang-pref',this,'swahili')">🇰🇪 Kiswahili</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Would you pay KSh 500/month for the full Pro version?</label>
+      <div class="chips" id="pay-willingness">
+        ${['Yes, definitely','Yes, but lower price','Maybe, depends on features','No, I need it free','I\'d pay more'].map(o=>`<button class="chip" onclick="toggleChip(this,'pay-willingness',true)">${o}</button>`).join('')}
+      </div>
+    </div>
+
+    <button class="btn-next" onclick="nextStep(4)">Continue →</button>
+    <button class="btn-back" onclick="prevStep(4)">← Back</button>
+  </div>
+
+  <!-- STEP 5: Final thoughts -->
+  <div class="step" id="step-5">
+    <div class="step-label">Step 5 of 5</div>
+    <div class="step-title">Final Thoughts</div>
+    <div class="step-sub">Last few questions — your honest opinion matters most here.</div>
+
+    <div class="form-group">
+      <label class="form-label">Would you recommend AgriMateKE to other farmers?</label>
+      <div class="yn-wrap" id="recommend">
+        <button class="yn-btn" onclick="selectYN('recommend',this,'yes')">✅ Yes, for sure</button>
+        <button class="yn-btn" onclick="selectYN('recommend',this,'no')">🤔 Not yet</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">What is the ONE thing we should fix or improve first?</label>
+      <textarea class="form-input" id="f-fix" placeholder="Be as specific as possible — this helps us the most..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Any other feedback, suggestions or ideas?</label>
+      <textarea class="form-input" id="f-other" placeholder="Anything at all — we read every response..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Your phone number (optional — only if you'd like us to follow up)</label>
+      <input class="form-input" id="f-phone" type="tel" placeholder="0712345678"/>
+    </div>
+
+    <button class="btn-next" onclick="submitForm()" style="background:linear-gradient(135deg,#1b5e20,#2e7d32)">🌱 Submit Feedback</button>
+    <button class="btn-back" onclick="prevStep(5)">← Back</button>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="step" id="step-success">
+    <div class="success">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Asante sana!</div>
+      <p class="success-sub">Thank you for taking the time to give us feedback. You are helping build a better app for every Kenyan farmer.</p>
+      <div class="success-share">
+        <p>📲 Know another farmer? Share AgriMateKE:</p>
+        <span class="share-link">agrimateke.netlify.app</span>
+        <button onclick="navigator.clipboard.writeText('agrimateke.netlify.app').then(()=>this.textContent='✅ Copied!')" style="margin-top:8px;background:var(--g700);color:white;border:none;border-radius:8px;padding:8px 16px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;width:100%">Copy Link</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ──
+const answers = {}
+let currentStep = 1
+
+// ── Navigation ──
+function nextStep(from) {
+  if (from === 1) {
+    if (!document.getElementById('f-name').value.trim()) { alert('Please enter your name'); return }
+    if (!document.getElementById('f-county').value) { alert('Please select your county'); return }
+    answers.name = document.getElementById('f-name').value.trim()
+    answers.county = document.getElementById('f-county').value
+    answers.farmType = getChips('farm-type')
+    answers.experience = document.getElementById('f-exp').value
+  }
+  if (from === 2) {
+    if (!answers.ratingOverall) { alert('Please rate the app overall'); return }
+    answers.ratingEase = answers.ratingEase || ''
+    answers.reaction = document.getElementById('f-reaction').value
+  }
+  if (from === 3) {
+    if (getChips('useful-features').length === 0) { alert('Please select at least one useful feature'); return }
+    answers.usefulFeatures = getChips('useful-features')
+    answers.confusingFeatures = getChips('confusing-features')
+    answers.missingFeature = document.getElementById('f-missing').value
+  }
+  if (from === 4) {
+    answers.triedBot = answers.triedBot || ''
+    answers.ratingBot = answers.ratingBot || ''
+    answers.langPref = answers.langPref || ''
+    answers.payWillingness = getChips('pay-willingness')
+  }
+  goToStep(from + 1)
+}
+
+function prevStep(from) { goToStep(from - 1) }
+
+function goToStep(n) {
+  document.getElementById(`step-${currentStep}`).classList.remove('active')
+  currentStep = n
+  const next = document.getElementById(`step-${n}`) || document.getElementById('step-success')
+  next.classList.add('active')
+  updateDots()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function updateDots() {
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.getElementById(`dot-${i}`)
+    if (!dot) continue
+    dot.classList.remove('active', 'done')
+    if (i < currentStep) dot.classList.add('done')
+    else if (i === currentStep) dot.classList.add('active')
+  }
+}
+
+// ── Interactions ──
+function selectRating(groupId, btn, value) {
+  document.querySelectorAll(`#${groupId} .rating-btn`).forEach(b => b.classList.remove('selected'))
+  btn.classList.add('selected')
+  if (groupId === 'rating-overall') answers.ratingOverall = value
+  if (groupId === 'rating-ease') answers.ratingEase = value
+  if (groupId === 'rating-bot') answers.ratingBot = value
+}
+
+function selectYN(groupId, btn, value) {
+  document.querySelectorAll(`#${groupId} .yn-btn`).forEach(b => b.classList.remove('selected'))
+  btn.classList.add('selected')
+  if (groupId === 'tried-bot') answers.triedBot = value
+  if (groupId === 'lang-pref') answers.langPref = value
+  if (groupId === 'recommend') answers.recommend = value
+}
+
+function toggleChip(btn, groupId, single = false) {
+  if (single) {
+    document.querySelectorAll(`#${groupId} .chip`).forEach(b => b.classList.remove('selected'))
+  }
+  btn.classList.toggle('selected')
+}
+
+function getChips(groupId) {
+  return Array.from(document.querySelectorAll(`#${groupId} .chip.selected`)).map(b => b.textContent.trim())
+}
+
+// ── Submit ──
+async function submitForm() {
+  answers.fix = document.getElementById('f-fix').value
+  answers.other = document.getElementById('f-other').value
+  answers.phone = document.getElementById('f-phone').value
+  answers.recommend = answers.recommend || ''
+  answers.submittedAt = new Date().toLocaleString('en-KE')
+
+  // ── Send to Formspree ──────────────────────────────────
+  // INSTRUCTIONS: Replace YOUR_FORM_ID below with your real
+  // Formspree form ID after signing up at formspree.io
+  // Example: https://formspree.io/f/xbjnkpqr
+  const FORMSPREE_ID = 'xjglwvgj'
+
+  // Build a clean readable payload for your email
+  const payload = {
+    _subject: `AgriMateKE Feedback — ${answers.name} (${answers.county})`,
+    Farmer_Name: answers.name,
+    County: answers.county,
+    Farm_Type: (answers.farmType||[]).join(', '),
+    Experience: answers.experience,
+    Overall_Rating: `${answers.ratingOverall}/5`,
+    Ease_of_Use: `${answers.ratingEase}/5`,
+    First_Reaction: answers.reaction,
+    Most_Useful_Features: (answers.usefulFeatures||[]).join(', '),
+    Confusing_Features: (answers.confusingFeatures||[]).join(', '),
+    Missing_Feature: answers.missingFeature,
+    Tried_Shamba_Bot: answers.triedBot,
+    Shamba_Bot_Rating: `${answers.ratingBot}/5`,
+    Language_Preference: answers.langPref,
+    Willing_to_Pay: (answers.payWillingness||[]).join(', '),
+    Would_Recommend: answers.recommend,
+    Fix_First: answers.fix,
+    Other_Feedback: answers.other,
+    Phone: answers.phone,
+    Submitted_At: answers.submittedAt,
+  }
+
+  try {
+    if (FORMSPREE_ID !== 'YOUR_FORM_ID') {
+      await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+    }
+  } catch(e) {
+    // Fail silently — still show success to farmer
+    console.warn('Formspree submission failed:', e)
+  }
+
+  // Show success screen
+  document.getElementById(`step-${currentStep}`).classList.remove('active')
+  document.getElementById('step-success').classList.add('active')
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.getElementById(`dot-${i}`)
+    if (dot) dot.classList.add('done')
+  }
+}
+</script>
+</body>
+</html>
